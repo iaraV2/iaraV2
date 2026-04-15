@@ -4,20 +4,17 @@ import {processarNovaMensagem, buscarHistoricoUsuario} from '../services/chatSer
 export const enviarMensagemController = async (req, res) => {
    try {
         const { mensagem } = req.body;
+        const idUsuario = req.userId; 
 
-        // O seu novo RAG em Node.js assume o controle aqui!
-        const respostaDaIA = await consultarIA(mensagem);
-
-        // Opcional: Aqui você pode salvar a pergunta e a resposta no seu Firestore
-        await salvarNoHistoricoFirestore(req.userId, mensagem, respostaDaIA);
+        const respostaDaIA = await processarNovaMensagem(idUsuario, mensagem);
 
         res.status(200).json({ 
             resposta: respostaDaIA 
         });
 
     } catch (error) {
-        console.error("Erro no Chatbot:", error);
-        res.status(500).json({ erro: "A IAra está descansando no momento. Tente novamente mais tarde." });
+        console.error("Erro no ChatController:", error);
+        res.status(500).json({ erro: "Erro interno ao enviar a mensagem." });
     }
 };
 

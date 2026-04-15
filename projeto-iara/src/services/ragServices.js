@@ -1,34 +1,40 @@
-// src/services/ragService.js
+//! importações tradicionais do Langchain
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { PineconeStore } from "@langchain/pinecone";
 import { Pinecone } from "@pinecone-database/pinecone";
-import { OllamaEmbeddings } from "@langchain/community/embeddings/ollama";
+import { OllamaEmbeddings } from "@langchain/ollama";
+import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
+
+//! importações específicas para o LCEL
+import { ChatPromptTemplate } from "@langchain/core/prompts";
+import { StringOutputParser } from "@langchain/core/output_parsers";
+import { RunnableSequence } from "@langchain/core/runnables";
 import 'dotenv/config';
 
+
+//? Instancia o Pinecone (banco de vetores) para guardar os vetores (conhecimento)
 const pinecone = new Pinecone({
   apiKey: process.env.PINECONE_API_KEY,
 });
+const pineconeIndex = pinecone.Index(process.env.PINECONE_INDEX);
 
-// 2. Instanciamos o Tradutor (Ollama Embeddings - rodando na sua máquina)
+
+//? Instancia do ollama pra transformar texto em números (embeddings)
 const embeddings = new OllamaEmbeddings({
   model: "nomic-embed-text",
   baseUrl: "http://localhost:11434", 
 });
 
-// 3. Instanciamos o Cérebro (Gemini)
+//? Instancia do Google Gemini, a llm responsavel por responder as perguntas dos alunos
+
 const llm = new ChatGoogleGenerativeAI({
-  modelName: "gemini-1.5-flash", 
+  model: "gemini-2.5-flash", 
   apiKey: process.env.GOOGLE_API_KEY,
 });
 
-// ============================================================================
-// FASE 1: INGESTÃO (Substitui o fluxo da Esquerda no n8n)
-// Lê um texto novo, corta em pedaços e salva no Pinecone
-// ============================================================================
+
+//! fase de aprendizado: recebe o texto bruto do material da aula, quebra em pedaços, transforma em vetores e guarda no Pinecone
 export const salvarDocumentoNoPinecone = async (textoBruto, metadados = {}) => {
-    
-    // Substitui a caixinha "Recursive Character Text Splitter"
-    // Corta o texto a cada 1000 letras, com uma sobreposição de 200 letras para não cortar ideias pela metade
     const splitter = new RecursiveCharacterTextSplitter({
         chunkSize: 1000,
         chunkOverlap: 200,
@@ -36,8 +42,6 @@ export const salvarDocumentoNoPinecone = async (textoBruto, metadados = {}) => {
 
     const docs = await splitter.createDocuments([textoBruto], [metadados]);
 
-    // Substitui a caixinha "Pinecone Vector Store"
-    // Ele pega os pedaços, manda pro Ollama virar números, e salva no Pinecone
     await PineconeStore.fromDocuments(docs, embeddings, {
         pineconeIndex,
     });
@@ -46,37 +50,56 @@ export const salvarDocumentoNoPinecone = async (textoBruto, metadados = {}) => {
 };
 
 
-// ============================================================================
-// FASE 2: CONSULTA (Substitui o fluxo da Direita no n8n)
-// Recebe a pergunta, busca no Pinecone, junta tudo e manda pro Gemini
-// ============================================================================
+//! fase de consulta: recebe a pergunta do aluno, busca o contexto relevante no Pinecone, e gera a resposta usando o Gemini
+
 export const consultarIA = async (pergunta) => {
     
-    // 1. Conecta no Pinecone existente e prepara o "Buscador" (Retriever)
-    // Ele vai trazer os 3 pedaços de texto que mais parecem com a pergunta
-    const vectorStore = await PineconeStore.fromExistingIndex(embeddings, { pineconeIndex });
+    const vectorStore = await PineconeStore.fromExistingIndex(embeddings, { pineconeIndex }); 
     const retriever = vectorStore.asRetriever({ k: 3 }); 
 
-    // 2. Criamos as instruções (Prompt) para o Gemini
     const prompt = ChatPromptTemplate.fromTemplate(`
-      Você é a IAra, uma assistente virtual educacional simpática e inteligente.
-      Use o CONTEXTO abaixo (que são materiais do professor) para responder à PERGUNTA do aluno.
-      Se a resposta não estiver no contexto, seja honesta e diga que não encontrou essa informação nos materiais da aula. Não invente coisas.
+      Você é a IAra, uma inteligência artificial companheira de aprendizagem.
+      
+      SEU PROPÓSITO:
+      Auxiliar pessoas das comunidades originárias, ribeirinhas e mulheres em situação de vulnerabilidade na construção de conhecimentos sobre empreendedorismo e inclusão digital.
 
-      CONTEXTO: 
+      SUA PEDAGOGIA:
+      Sua abordagem é fortemente inspirada na educação popular de Paulo Freire, Carlos Rodrigues Brandão e Madalena Freire.
+      - Use uma linguagem extremamente simples, acolhedora, afetuosa e acessível.
+      - NUNCA use jargões técnicos de tecnologia ou negócios sem explicá-los com analogias do dia a dia da comunidade (ex: rios, pesca, artesanato, feira).
+      - Valorize o saber popular. O aluno não é uma tábua rasa, ele tem conhecimentos de vida que devem ser respeitados.
+      - Seja encorajadora e construa a resposta "com" o aluno, não apenas entregue a resposta pronta.
+
+      REGRA DE CONHECIMENTO:
+      Use ESTRITAMENTE os materiais da aula fornecidos no CONTEXTO abaixo para fundamentar sua resposta. 
+      Se a informação solicitada não estiver no contexto, seja honesta. Diga com carinho que ainda não aprendeu sobre isso no material da aula, mas incentive a curiosidade do aluno.
+
+      CONTEXTO DA AULA: 
       {context}
 
-      PERGUNTA: {input}
-      RESPOSTA:
+      PERGUNTA DO ALUNO: {input}
+      RESPOSTA DA IARA:
     `);
 
-    // 3. Substitui as caixinhas "Question and Answer Chain"
-    // O LangChain cria a corrente: Pega o contexto -> Joga no Prompt -> Manda pro LLM
-    const combineDocsChain = await createStuffDocumentsChain({ llm, prompt });
-    const retrievalChain = await createRetrievalChain({ retriever, combineDocsChain });
+    // A MÁGICA MODERNA (LCEL): Nossa Linha de Montagem
+    const chain = RunnableSequence.from([
+        {
+            // Passo 1: Busca o contexto no Pinecone e junta os textos
+            context: async (input) => {
+                const docs = await retriever.invoke(input);
+                return docs.map(doc => doc.pageContent).join("\n\n");
+            },
+            // Passo 2: Repassa a pergunta inalterada
+            input: (input) => input
+        },
 
-    // 4. Executa a mágica e devolve só o texto da resposta
-    const response = await retrievalChain.invoke({ input: pergunta });
+        prompt,
+        llm,
+        new StringOutputParser()
+    ]);
+
+    // Executa a linha de montagem inteira
+    const response = await chain.invoke(pergunta);
     
-    return response.answer;
+    return response;
 };
