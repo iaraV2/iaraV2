@@ -1,11 +1,13 @@
 //! aqui onde o cerebro de cada operação funciona os services 
 //! nossos services de usuarios deve poder cadastrar, logar, deletar a propria conta, conversar com a IA
 
-import { buscarUsuarioPorEmail, deletarUsuario, atualizarUsuario} from "../models/usuarioModel.js";
+import { buscarUsuarioPorEmail, deletarUsuario, atualizarUsuario, buscarUsuarioPorToken} from "../models/usuarioModel.js";
 import bcrypt from "bcryptjs"; //? importação do bcrypt biblioteca para criptografar senhas
 import jwt from "jsonwebtoken";
 import {adicionarUsuario} from "../models/usuarioModel.js"
 import 'dotenv/config';
+import nodemailer from 'nodemailer';
+import crypto from 'crypto';
 
 
 
@@ -126,5 +128,87 @@ const deletarUsuarioService = async (idUsuario) => {
     return resultado;
 };
 
-export {cadastrarUsuarioService, loginUsuarioService, editarUsuarioService, deletarUsuarioService} //? exporta esse arquivo atual para o controller poder acessar
+//! solicita a recuperação de senha
+const solicitarRecuperacao = async (email) => {
+    const usuario = await buscarUsuarioPorEmail(email);
+    if (!usuario) {
+        throw new Error('Usuário não encontrado');
+    }
+
+    //? gera o token de recuperação e define a expiração pra 1 hora
+    const token = crypto.randomBytes(4).toString('hex');
+    const expiracao = new Date();
+    expiracao.setHours(expiracao.getHours() + 1); 
+
+    await atualizarUsuario(usuario.id, {
+        resetPasswordToken: token,
+        resetPasswordExpires: expiracao.toISOString()
+    });
+
+    //? aqui configura o transporte de email usando nodemailer e envia o email de recuperação
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.EMAIL_APP,
+            pass: process.env.EMAIL_SENHA 
+        }
+    });
+
+
+    const mailOptions = {
+        from: `IAra Suporte <${process.env.EMAIL_APP}>`,
+        to: email,
+        subject: 'IAra - Recuperação de Senha',
+        text: `Olá! Use o código abaixo para criar uma nova senha:\n\n${token}\n\nEste código expira em 1 hora.`
+    };
+
+    return await transporter.sendMail(mailOptions);
+};
+
+
+//! realizar reset de senha
+ const realizarResetSenha = async (token, novaSenha) => {
+    
+    const usuario = await buscarUsuarioPorToken(token);
+
+    if (!usuario) {
+        throw new Error('Token inválido ou expirado.');
+    }
+
+    const agora = new Date();
+    const dataToken = new Date(usuario.resetPasswordExpires);
+    if (agora > dataToken) {
+        throw new Error('O código de recuperação expirou.');
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const senhaHash = await bcrypt.hash(novaSenha, salt);
+
+    await atualizarUsuario(usuario.id, {
+        senha: senhaHash,
+        resetPasswordToken: null,
+        resetPasswordExpires: null
+    });
+
+    
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.EMAIL_APP,
+            pass: process.env.EMAIL_SENHA 
+        }
+    });
+
+    
+    const mailOptions = {
+        from: `IAra Suporte <${process.env.EMAIL_APP}>`,
+        to: usuario.email,
+        subject: 'IAra - Senha alterada com sucesso',
+        text: `Olá!\n\nPassando para avisar que sua senha na IAra foi alterada com sucesso.\n\nSe não foi você quem fez isso, entre em contato com o suporte imediatamente.`
+    };
+
+    return await transporter.sendMail(mailOptions);
+};
+
+export {cadastrarUsuarioService, loginUsuarioService, editarUsuarioService, deletarUsuarioService, solicitarRecuperacao, realizarResetSenha} //? exporta esse arquivo atual para o controller poder acessar
 

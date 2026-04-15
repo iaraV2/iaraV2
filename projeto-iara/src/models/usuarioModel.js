@@ -82,11 +82,31 @@ const deletarUsuario = async (idUsuario) => {
     }
 };
 
+const buscarUsuarioPorToken = async (token) => {
+    try {
+        const usuarioRef = db.collection("usuarios");
+        const snapshot = await usuarioRef.where("resetPasswordToken", "==", token).get();
+
+        if (snapshot.empty) {
+            return null;
+        }
+
+        let usuarioEncontrado = null;
+        snapshot.forEach(doc => {
+            usuarioEncontrado = doc.data();
+            usuarioEncontrado.id = doc.id;
+        });
+
+        return usuarioEncontrado;
+    } catch (error) {
+        console.error("Erro ao buscar usuário por token", error);
+        throw error;
+    }
+};
 
 
 
-
-export {adicionarUsuario, buscarUsuarioPorEmail, atualizarUsuario, deletarUsuario}; 
+export {adicionarUsuario, buscarUsuarioPorEmail, atualizarUsuario, deletarUsuario, buscarUsuarioPorToken}; 
 
 
 

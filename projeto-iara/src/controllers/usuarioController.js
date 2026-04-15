@@ -1,4 +1,4 @@
-import { cadastrarUsuarioService, loginUsuarioService, editarUsuarioService, deletarUsuarioService} from "../services/usuarioService.js";
+import { cadastrarUsuarioService, loginUsuarioService, editarUsuarioService, deletarUsuarioService, solicitarRecuperacao, realizarResetSenha} from "../services/usuarioService.js";
 
 
 
@@ -65,7 +65,27 @@ const deletarUsuarioController = async (req, res) => {
     }
 };
 
+const esqueciSenhaController = async (req, res) => {
+    try {
+        const { email } = req.body;
+        await solicitarRecuperacao(email);
+        res.status(200).json({ message: "E-mail enviado com sucesso!" });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
+
+
+ const resetarSenhaController = async (req, res) => {
+    try {
+        const { token, novaSenha } = req.body;
+        await realizarResetSenha(token, novaSenha);
+        res.status(200).json({ message: "Senha alterada com sucesso!" });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
 
 
 
-export {cadastrarUsuarioController, loginUsuarioController, editarUsuarioController, deletarUsuarioController};
+export {cadastrarUsuarioController, loginUsuarioController, editarUsuarioController, deletarUsuarioController, esqueciSenhaController, resetarSenhaController};
