@@ -11,6 +11,12 @@ import { StringOutputParser } from "@langchain/core/output_parsers";
 import { RunnableSequence } from "@langchain/core/runnables";
 import 'dotenv/config';
 
+//! Importação dos serviços de leitura do Drive e de interação com o Pinecone
+import { extrairTextoDoDrive } from './services/driveService.js';
+import { salvarDocumentoNoPinecone } from './services/ragService.js';
+
+
+
 
 //? Instancia o Pinecone (banco de vetores) para guardar os vetores (conhecimento)
 const pinecone = new Pinecone({
@@ -34,6 +40,21 @@ const llm = new ChatGoogleGenerativeAI({
 
 
 //! fase de aprendizado: recebe o texto bruto do material da aula, quebra em pedaços, transforma em vetores e guarda no Pinecone
+
+//? Função principal para aprender uma nova aula: recebe o ID do arquivo no Drive, extrai o texto, e salva no Pinecone
+const aprenderNovaAula = async (idDoArquivoNoDrive) => {
+  const textoExtraido = await extrairTextoDoDrive(idDoArquivoNoDrive);
+
+  await salvarDocumentoNoPinecone(textoExtraido, {
+    origem: "Google Drive",
+    arquivoId: idDoArquivoNoDrive,
+    dataAprendizado: new Date().toISOString()
+  });
+
+  console.log("IAra aprendeu o conteúdo com sucesso!");
+};
+
+//? Função para salvar o texto extraído no Pinecone, transformando em vetores e guardando com metadados
 export const salvarDocumentoNoPinecone = async (textoBruto, metadados = {}) => {
     const splitter = new RecursiveCharacterTextSplitter({
         chunkSize: 1000,
@@ -55,7 +76,7 @@ export const salvarDocumentoNoPinecone = async (textoBruto, metadados = {}) => {
 export const consultarIA = async (pergunta) => {
     
     const vectorStore = await PineconeStore.fromExistingIndex(embeddings, { pineconeIndex }); 
-    const retriever = vectorStore.asRetriever({ k: 3 }); 
+    const retriever = vectorStore.asRetriever({ k: 3 });    
 
     const prompt = ChatPromptTemplate.fromTemplate(`
       Você é a IAra, uma inteligência artificial companheira de aprendizagem.
