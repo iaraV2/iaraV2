@@ -59,7 +59,7 @@
           min-[769px]:max-[1024px]:w-[25rem]
 
           max-[768px]:w-[19rem]
-          max-[768px]:-top-[6rem]
+          max-[768px]:-top-[5rem]
           max-[768px]:left-0
           max-[768px]:max-w-[95vw]
         "
@@ -91,7 +91,7 @@
           min-[769px]:max-[1024px]:left-0
 
           max-[768px]:-top-[13.5rem]
-          max-[768px]:w-[50%]
+          max-[768px]:w-[35%]
           max-[768px]:left-0
 
           disabled:opacity-60 hover:opacity-90 transition-opacity duration-300
@@ -119,10 +119,10 @@
           min-[1025px]:max-[1366px]:w-[15%]
           min-[1025px]:max-[1366px]:bottom-[9rem]
 
-          max-[768px]:-top-[12rem]
+          max-[768px]:-top-[9rem] !important
           max-[768px]:bottom-auto
           max-[768px]:left-0
-          max-[768px]:w-[50%]
+          max-[768px]:w-[39%]
           max-[768px]:mx-auto
         "
       />
