@@ -5,17 +5,28 @@ const routes = [
   {
     path: '/',
     name: 'Inicio',
-    component: () => import('../views/TelaInicio.vue'),
+    component: () => import('../views/inicio/TelaInicio.vue'),
     meta: { requerAuth: false, somenteDeslogado: false }, //o meta é um objeto customizável para guardar informações sobre a rota. Aqui usamos para controlar acesso.
   },
   {
     path: '/login',
     name: 'Login',
-    component: () => import('../views/TelaLogin.vue'),
+    component: () => import('../views/login/Login.vue'),
     meta: { requerAuth: false, somenteDeslogado: true }, //só pode acessar se NÃO estiver autenticado
   },
   {
-  }
+    path: '/cadastro',
+    name: 'Cadastro',
+    component: () => import('../views/cadastro/TelaCadastro.vue'),
+    meta: { requerAuth: false, somenteDeslogado: true }, //só pode acessar se NÃO estiver autenticado
+  },
+  {
+    path: '/esqueci-senha',
+    name: 'EsqueciSenha',
+    component: () => import('../views/esqueci-senha/EsqueciSenha.vue'),
+    meta: { requerAuth: false, somenteDeslogado: true }, //só pode acessar se NÃO estiver autenticado
+  },
+
 ]
 
 const router = createRouter({
