@@ -86,6 +86,48 @@ const esqueciSenhaController = async (req, res) => {
     }
 };
 
+const aprovarProfessorController = async (req, res) => {
+    try {
+        const { token, id } = req.query
+ 
+        if (!token || !id) {
+            return res.status(400).send(`
+                <h2>Link inválido.</h2>
+                <p>Parâmetros ausentes. Verifique o e-mail e tente novamente.</p>
+            `)
+        }
+ 
+        const resultado = await aprovarProfessorService(token, id)
+ 
+        // Responde com HTML simples — é o admin clicando num link no e-mail
+        res.status(200).send(`
+            <html>
+            <body style="font-family:sans-serif; text-align:center; padding:60px; background:#f9f5ff;">
+                <h2 style="color:#420583;">✅ ${resultado.mensagem}</h2>
+                <p>O professor já pode fazer login na plataforma IAra.</p>
+                <p>Você pode fechar esta janela.</p>
+            </body>
+            </html>
+        `)
+    } catch (error) {
+        res.status(400).send(`
+            <html>
+            <body style="font-family:sans-serif; text-align:center; padding:60px; background:#fff0f0;">
+                <h2 style="color:#cc0000;">❌ Erro na aprovação</h2>
+                <p>${error.message}</p>
+                <p>Você pode fechar esta janela.</p>
+            </body>
+            </html>
+        `)
+    }
+}
 
 
-export {cadastrarUsuarioController, loginUsuarioController, editarUsuarioController, deletarUsuarioController, esqueciSenhaController, resetarSenhaController};
+
+export {cadastrarUsuarioController,
+    loginUsuarioController,
+    editarUsuarioController,
+    deletarUsuarioController, 
+    esqueciSenhaController,
+    resetarSenhaController,
+    aprovarProfessorController};

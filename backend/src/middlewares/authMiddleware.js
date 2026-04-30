@@ -15,7 +15,8 @@ export const authMiddleware = (req, res, next) => {
     try {                                           //? Usa jwt.verify para decodificar e validar a assinatura e a expiração do token
     const decoded = jwt.verify(token, JWT_SECRET);
     
-    req.userId = decoded.id;              //? O controller saberá quem está fazendo a requisição e poderá aplicar regras de negócio (ex.: só editar/deletar a própria conta).
+    req.userId = decoded.id; //? O controller saberá quem está fazendo a requisição e poderá aplicar regras de negócio (ex.: só editar/deletar a própria conta).
+    req.userRole = decoded.role; //? O controller pode usar a role para aplicar regras de autorização (ex.: só admin pode deletar outros usuários).
 
     next();                              //? Se a verificação for bem-sucedida, prossegue para a próxima função (o Controller)
 

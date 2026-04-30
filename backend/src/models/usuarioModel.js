@@ -10,6 +10,7 @@ const adicionarUsuario = async(dadosUsuario) => {
         email: dadosUsuario.email,
         senha: dadosUsuario.senha,
         temaDeInteresse: dadosUsuario.temaDeInteresse,
+        role: dadosUsuario.role || 'aluno', //? padrão: aluno
         criadoEm: new Date()
     
     })
@@ -20,6 +21,74 @@ const adicionarUsuario = async(dadosUsuario) => {
         throw error;
     } //? cairá na caixa catch se acaso o firebase cair
 };
+
+
+//! Listar todos os usuários (para painel admin)
+const buscarUsuarioPorId = async (idUsuario) => {
+    try {
+        const doc = await db.collection('usuarios').doc(idUsuario).get()
+ 
+        if (!doc.exists) return null
+ 
+        return { id: doc.id, ...doc.data() }
+ 
+    } catch (error) {
+        console.error("Erro ao buscar usuário por ID:", error)
+        throw error
+    }
+}
+ 
+
+//! listar todos os usuarios por ordem de criação (mais recente primeiro)
+const listarTodosUsuarios = async () => {
+    try {
+        const snapshot = await db.collection('usuarios')
+            .orderBy('criadoEm', 'desc')
+            .get()
+ 
+        const usuarios = []
+        snapshot.forEach(doc => {
+            const dados = doc.data()
+            //? NUNCA retornamos a senha, mesmo que seja hash
+            delete dados.senha
+            delete dados.resetPasswordToken
+            delete dados.resetPasswordExpires
+            usuarios.push({ id: doc.id, ...dados })
+        })
+ 
+        return usuarios
+ 
+    } catch (error) {
+        console.error("Erro ao listar usuários:", error)
+        throw error
+    }
+}
+
+
+//! Listar usuários por role (admin filtra alunos, professores etc.)
+const listarUsuariosPorRole = async (role) => {
+    try {
+        const snapshot = await db.collection('usuarios')
+            .where('role', '==', role)
+            .orderBy('criadoEm', 'desc')
+            .get()
+ 
+        const usuarios = []
+        snapshot.forEach(doc => {
+            const dados = doc.data()
+            delete dados.senha
+            delete dados.resetPasswordToken
+            delete dados.resetPasswordExpires
+            usuarios.push({ id: doc.id, ...dados })
+        })
+ 
+        return usuarios
+ 
+    } catch (error) {
+        console.error(`Erro ao listar usuários com role ${role}:`, error)
+        throw error
+    }
+}
 
 
 
@@ -106,7 +175,16 @@ const buscarUsuarioPorToken = async (token) => {
 
 
 
-export {adicionarUsuario, buscarUsuarioPorEmail, atualizarUsuario, deletarUsuario, buscarUsuarioPorToken}; 
+export {
+    adicionarUsuario,
+    buscarUsuarioPorEmail,
+    atualizarUsuario,
+    deletarUsuario,
+    buscarUsuarioPorToken,
+    buscarUsuarioPorId,
+    listarTodosUsuarios,
+    listarUsuariosPorRole
+}; 
 
 
 

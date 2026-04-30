@@ -1,17 +1,22 @@
-//! essa pasta app.js serve para configurarmos o projeto como um todo, um esqueleto do processo um manual de regras
 
-import express, { json } from 'express';
+
+import express from 'express';
 import cors from 'cors';
 import usuarioRoutes from './routes/usuarioRoutes.js';
-import chatRoutes from "./routes/chatRoutes.js"
+import chatRoutes from './routes/chatRoutes.js';
+import adminRoutes from './routes/adminRoutes.js'; //? novo
 
-const app = express() //? inincializa nosso express atribuindo a variavel app
+const app = express()
 
-app.use(cors())
-app.use(express.json()) //? para o express poder ler os json (body params)
+//? Restringe o CORS para aceitar apenas o frontend — troque pela URL de produção quando deployar
+app.use(cors({
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173'
+}))
 
+app.use(express.json())
 
-app.use("/iara", usuarioRoutes) //? aqui eu defino como padrão o uso do endpoint "iara" antes de chamar qualquer rota de usuario
-app.use("/iara/chat", chatRoutes)
+app.use("/iara",       usuarioRoutes) //? rotas públicas de usuário (cadastro, login, recuperação)
+app.use("/iara/chat",  chatRoutes)    //? rotas do chatbot (privadas)
+app.use("/iara/admin", adminRoutes)   //? rotas do painel admin/professor (privadas + role)
 
 export default app

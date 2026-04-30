@@ -75,7 +75,7 @@
     }
 
     /** Realiza o cadastro de novo usuário */
-    async function cadastrar(nome, email, senha, tema) {
+    async function cadastrar(nome, email, senha, tema, role = 'aluno') {
       const { data } = await api.post('/usuarios/cadastro', { nome, email, senha, tema })
       return data
     }
