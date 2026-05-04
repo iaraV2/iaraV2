@@ -6,36 +6,57 @@ const routes = [
     path: '/',
     name: 'Inicio',
     component: () => import('../views/inicio/TelaInicio.vue'),
-    meta: { requerAuth: false, somenteDeslogado: false }, //o meta é um objeto customizável para guardar informações sobre a rota. Aqui usamos para controlar acesso.
+    meta: { requerAuth: false, somenteDeslogado: false },
   },
   {
     path: '/login',
     name: 'Login',
     component: () => import('../views/login/Login.vue'),
-    meta: { requerAuth: false, somenteDeslogado: true }, //só pode acessar se NÃO estiver autenticado
+    meta: { requerAuth: false, somenteDeslogado: true },
   },
   {
     path: '/cadastro',
     name: 'Cadastro',
     component: () => import('../views/cadastro/TelaCadastro.vue'),
-    meta: { requerAuth: false, somenteDeslogado: true }, //só pode acessar se NÃO estiver autenticado
+    meta: { requerAuth: false, somenteDeslogado: true },
   },
   {
     path: '/esqueci-senha',
     name: 'EsqueciSenha',
     component: () => import('../views/esqueci-senha/EsqueciSenha.vue'),
-    meta: { requerAuth: false, somenteDeslogado: true }, //só pode acessar se NÃO estiver autenticado
+    meta: { requerAuth: false, somenteDeslogado: true },
   },
-
+  {
+    path: '/menu',
+    name: 'Menu',
+    component: () => import('../views/menu/Menu.vue'),
+    meta: { requerAuth: true },
+  },
+  {
+    path: '/sala-de-aula',
+    name: 'SalaDeAula',
+    component: () => import('../views/sala_de_aula/sala-de-aula.vue'),
+    meta: { requerAuth: true },
+  },
+  {
+    path: '/chat',
+    name: 'Chat',
+    component: () => import('../views/chat/Chat.vue'),
+    meta: { requerAuth: true },
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: '/'
+  }
 ]
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL), //
+  history: createWebHistory(), // ✅ CORREÇÃO: removido o argumento (antes estava import.meta.env.BASE_URL)
   routes,
-  scrollBehavior: () => ({ top: 0 }), //? sempre rola pro topo quando muda de rota
+  scrollBehavior: () => ({ top: 0 }),
 })
 
-router.beforeEach((to, _from, next) => { //? guarda a lógica de autenticação aqui para não repetir em cada componente
+router.beforeEach((to, _from, next) => {
   const auth = useAuthStore()
 
   const precisaDeAuth    = to.meta.requerAuth === true
@@ -46,7 +67,7 @@ router.beforeEach((to, _from, next) => { //? guarda a lógica de autenticação 
   }
 
   if (somenteDeslogado && auth.estaAutenticado) {
-    return next({ name: 'Chat' })
+    return next({ name: 'Menu' })
   }
 
   next()

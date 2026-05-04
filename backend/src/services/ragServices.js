@@ -12,8 +12,9 @@ import { RunnableSequence } from "@langchain/core/runnables";
 import 'dotenv/config';
 
 //! Importação dos serviços de leitura do Drive e de interação com o Pinecone
-import { extrairTextoDoDrive } from './services/driveService.js';
-import { salvarDocumentoNoPinecone } from './services/ragService.js';
+import { extrairTextoDoDrive } from './driveService.js';
+// ❌ COMENTADO: isso estava causando conflito porque a função já é declarada abaixo
+// import { salvarDocumentoNoPinecone } from './services/ragService.js';
 
 
 
@@ -22,7 +23,8 @@ import { salvarDocumentoNoPinecone } from './services/ragService.js';
 const pinecone = new Pinecone({
   apiKey: process.env.PINECONE_API_KEY,
 });
-const pineconeIndex = pinecone.Index(process.env.PINECONE_INDEX);
+// const pineconeIndex = pinecone.Index(process.env.PINECONE_INDEX);
+const pineconeIndex = pinecone.index(process.env.PINECONE_INDEX);
 
 
 //? Instancia do ollama pra transformar texto em números (embeddings)

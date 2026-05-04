@@ -5,15 +5,14 @@ import {db} from '../config/firebase.js'
 
 const adicionarUsuario = async(dadosUsuario) => {
     try {
-        const usuarioDocRef = await db.collection("usuarios").add({ //? cria uma coleção de dados com o nome de "usuarios"
-        nome: dadosUsuario.nome,
-        email: dadosUsuario.email,
-        senha: dadosUsuario.senha,
-        temaDeInteresse: dadosUsuario.temaDeInteresse,
-        criadoEm: new Date()
-    
-    })
-    return usuarioDocRef.id //? retorna o Id para quem chamar o adicionarUsuario
+        const usuarioDocRef = await db.collection("usuarios").add({
+          nome: dadosUsuario.nome,
+          email: dadosUsuario.email,
+          senha: dadosUsuario.senha,
+          temaDeInteresse: dadosUsuario.temaDeInteresse,
+          criadoEm: dadosUsuario.criadoEm || new Date()
+        })
+        return usuarioDocRef.id
 
     } catch (error) {
         console.error("erro ao salvar os dados" , error)

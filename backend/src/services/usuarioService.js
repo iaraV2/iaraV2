@@ -14,21 +14,19 @@ import crypto from 'crypto';
 //!CADASTRO
 const cadastrarUsuarioService = async (dadosUsuario) => {
 
-    const { nome, email, senha, tema} = dadosUsuario;
+    const { nome, email, senha, tema } = dadosUsuario;
 
     if(!nome){
         throw new Error("o nome é obrigatório")
-    } //? verificação para saber se o nome nao esta vazio
+    }
     
     if(!email){
         throw new Error("o email é obrigatório")
-    } //? verificação para saber se o email não está vazio
+    }
 
     if(!senha || senha.length < 6 ){
         throw new Error("a senha deve ter mais que 6 digitos") 
-    } //? verificação para saber se a senha nao esta vazia e se ela tem menos que 6 digitos
-
-
+    }
 
     //! criptografia da senha
     const salt = await bcrypt.genSalt(10)
@@ -38,27 +36,27 @@ const cadastrarUsuarioService = async (dadosUsuario) => {
         nome: nome,
         email: email,
         senha: senhaHash,
-        temaDeInteresse: tema || null
+        temaDeInteresse: tema || 'Padrão',
+        criadoEm: new Date()
+    }
 
-        } //? cria um novo usuario com a senha encriptada
-
-        const idCriado = await adicionarUsuario(novoUsuario) //? coloca esse novo usuario dentro da função adicionarUsuario la do firestore na pasta model
-        return { id: idCriado, mensagem: "Usuário criado com sucesso!" };
-
-
+    const idCriado = await adicionarUsuario(novoUsuario)
+    return { id: idCriado, mensagem: "Usuário criado com sucesso!" };
 }
 
 
 //!LOGIN
 
 const loginUsuarioService = async (dadosLogin) => {
-
+        console.log('🔍 Dados recebidos no login:', dadosLogin);
         
         const usuarioEncontrado = await buscarUsuarioPorEmail(dadosLogin.email)
-
+        console.log('👤 Usuário encontrado:', usuarioEncontrado ? 'SIM' : 'NÃO');
+        console.log('📧 Email buscado:', dadosLogin.email);
   
         
         if(!usuarioEncontrado){
+            console.log('❌ Usuário não encontrado para email:', dadosLogin.email);
             throw new Error("email ou senha invalida")
         }
 
@@ -69,18 +67,18 @@ const loginUsuarioService = async (dadosLogin) => {
             throw new Error("email ou senha invalidos")
         }
 
-        const JWT_SECRET = process.env.JWT_SECRET //? meu secret
+        const JWT_SECRET = process.env.JWT_SECRET 
 
         const token = jwt.sign({ id: usuarioEncontrado.id, email: usuarioEncontrado.email }, JWT_SECRET, {expiresIn: "12h"})
         
+        // Remove a senha antes de retornar os dados do usuário
+        const { senha: _, ...usuarioSemSenha } = usuarioEncontrado;
+
         return {
-        mensagem: "Login realizado com sucesso",
-        token: token,
-        usuario: {
-        id: usuarioEncontrado.id,
-        nome: usuarioEncontrado.nome,
-        email: usuarioEncontrado.email
-        }}
+          mensagem: "Login realizado com sucesso",
+          token: token,
+          usuario: usuarioSemSenha
+        }
 }
 
 

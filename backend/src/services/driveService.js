@@ -1,5 +1,5 @@
 import { google } from 'googleapis';
-import pdf from 'pdf-parse';
+import * as pdf from 'pdf-parse';
 import 'dotenv/config';
 
 //? Configuração de autenticação para acessar o Google Drive
