@@ -30,19 +30,19 @@ const routes = [
     path: '/menu',
     name: 'Menu',
     component: () => import('../views/menu/Menu.vue'),
-    meta: { requerAuth: true },
+    meta: { requerAuth: false },
   },
   {
     path: '/sala-de-aula',
     name: 'SalaDeAula',
     component: () => import('../views/sala_de_aula/sala-de-aula.vue'),
-    meta: { requerAuth: true },
+    meta: { requerAuth: false },
   },
   {
     path: '/chat',
     name: 'Chat',
     component: () => import('../views/chat/Chat.vue'),
-    meta: { requerAuth: true },
+    meta: { requerAuth: false },
   },
   {
     path: '/:pathMatch(.*)*',
