@@ -27,6 +27,12 @@ const routes = [
     meta: { requerAuth: false, somenteDeslogado: true },
   },
   {
+    path: '/resetar-senha',
+    name: 'ResetarSenha',
+    component: () => import('../views/resetar-senha/ResetarSenha.vue'),
+    meta: { requerAuth: false, somenteDeslogado: true },
+  },
+  {
     path: '/menu',
     name: 'Menu',
     component: () => import('../views/menu/Menu.vue'),
@@ -48,10 +54,11 @@ const routes = [
     path: '/:pathMatch(.*)*',
     redirect: '/'
   }
+
 ]
 
 const router = createRouter({
-  history: createWebHistory(), // ✅ CORREÇÃO: removido o argumento (antes estava import.meta.env.BASE_URL)
+  history: createWebHistory(),
   routes,
   scrollBehavior: () => ({ top: 0 }),
 })

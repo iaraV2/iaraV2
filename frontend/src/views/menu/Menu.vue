@@ -1,34 +1,67 @@
 <template>
-  <div class="menu-container fixed top-0 left-0 w-full h-screen flex flex-col bg-[#380075] overflow-hidden z-[999]">
-    <button @click="voltarLogin" class="btnVoltar absolute top-5 right-5 z-[1000] bg-black/20 border border-aqua text-white py-2 px-4 rounded-[20px] cursor-pointer font-['Quicksand'] font-bold hover:bg-aqua hover:text-[#380075] transition-colors">⬅ Sair</button>
+  <div class="menu-container fixed top-0 left-0 w-full h-screen flex flex-col bg-[#380075] overflow-y-auto z-[999]">
+    
+    <!-- Botão Sair altera o estado do modal em vez de deslogar direto -->
+    <button @click="modal.visible = true" class="btnVoltar absolute top-5 right-5 z-[100] bg-black/20 border border-aqua text-white py-2 px-4 rounded-[20px] cursor-pointer font-['Quicksand'] font-bold hover:bg-aqua hover:text-[#380075] transition-colors">
+      ⬅ Sair
+    </button>
 
-    <div class="metadeSuperior flex-[1] h-1/2 w-full flex flex-col items-center justify-center relative">
-      <div class="saudacaoContainer text-center z-10 -mb-[100px] animate-fadeIn">
-        <h1 class="textoSaudacao font-['Quicksand'] text-white font-light text-[2rem] m-0">Olá, <span class="nomeDestaque text-aqua font-bold capitalize">{{ nomeUsuario }}</span>!</h1>
-        <p class="subtextoSaudacao font-['Quicksand'] text-[#e0e0e0] text-base mt-[5px]">Como posso te ajudar hoje?</p>
-      </div>
-      <img src="/img/iara.png" alt="Logo IAra" class="logoIaraMenu h-[60vh] w-auto -mb-[200px] -mt-[45px] object-contain drop-shadow-[0_0_10px_rgba(0,0,0,0.3)]" />
-    </div>
-
-    <div class="estruturaInferior h-1/2 w-full bg-[#f0f4f8] rounded-t-[40px] flex justify-center items-center p-5 box-border">
-      <div class="grid-cards grid grid-cols-2 grid-rows-2 gap-[15px] w-full max-w-[600px] h-[90%]">
-        <div v-for="card in cards" :key="card.titulo" @click="irPara(card.rota)" class="card-item bg-white rounded-[20px] shadow-[0_4px_6px_rgba(0,0,0,0.1)] flex flex-col justify-center items-center cursor-pointer transition-transform duration-200 hover:scale-[1.02] hover:bg-[#fffaf0] text-center p-2.5">
-          <component :is="card.iconIsImg ? 'img' : (card.iconIsSvg ? 'svg' : 'i')" v-bind="card.iconProps" :class="card.iconClass" />
-          <h6 class="card-titulo text-[#440d72] font-['Quicksand'] font-bold text-[0.9rem] mt-2">{{ card.titulo }}</h6>
+    <!-- Modal Reativo Customizado -->
+    <div v-if="modal.visible" class="fixed inset-0 bg-black/60 flex items-center justify-center z-[2000] backdrop-blur-sm animate-fadeIn">
+      <div class="bg-white rounded-3xl p-8 w-80 shadow-2xl text-center">
+        <h3 class="font-['Quicksand'] font-bold text-[#420583] text-2xl mb-2">Sair da conta?</h3>
+        <p class="font-['Quicksand'] text-gray-500 text-sm mb-6">Tem certeza que deseja se desconectar da IAra?</p>
+        <div class="flex justify-center gap-3">
+          <button @click="modal.visible = false" class="flex-1 py-3 rounded-full font-['Quicksand'] font-bold text-gray-600 bg-gray-200 hover:bg-gray-300 transition-colors">Não</button>
+          <button @click="efetuarLogout" class="flex-1 py-3 rounded-full font-['Quicksand'] font-bold text-white bg-[#e25300] hover:bg-[#ff7b00] transition-colors">Sim, Sair</button>
         </div>
       </div>
     </div>
+
+    <!-- Metade superior -->
+    <div class="metadeSuperior flex-shrink-0 min-h-[45%] w-full flex flex-col items-center justify-center relative overflow-visible">
+      <div class="saudacaoContainer text-center z-10 animate-fadeIn">
+        <h1 class="textoSaudacao font-['Quicksand'] text-white font-light text-[2rem] m-0">
+          Olá, <span class="nomeDestaque text-aqua font-bold capitalize">{{ nomeUsuario }}</span>!
+        </h1>
+        <p class="subtextoSaudacao font-['Quicksand'] text-[#e0e0e0] text-base mt-[5px]">
+          Como posso te ajudar hoje?
+        </p>
+      </div>
+      <img src="/img/iara.png" alt="Logo IAra" class="logoIaraMenu w-auto object-contain drop-shadow-[0_0_10px_rgba(0,0,0,0.3)]" />
+    </div>
+
+    <!-- Metade inferior -->
+    <div class="estruturaInferior flex-shrink-0 min-h-[50%] w-full bg-[#f0f4f8] rounded-t-[40px] flex justify-center items-center p-5 box-border">
+      <div class="grid-cards grid grid-cols-2 grid-rows-2 gap-[15px] w-full max-w-[600px]">
+        <div v-for="card in cards" :key="card.titulo" @click="irPara(card.rota)" class="card-item bg-white rounded-[20px] shadow-[0_4px_6px_rgba(0,0,0,0.1)] flex flex-col justify-center items-center cursor-pointer transition-transform duration-200 hover:scale-[1.02] hover:bg-[#fffaf0] text-center p-2.5">
+          <component :is="card.iconIsImg ? 'img' : (card.iconIsSvg ? 'svg' : 'i')" v-bind="card.iconProps" :class="card.iconClass" />
+          <h6 class="card-titulo text-[#440d72] font-['Quicksand'] font-bold text-[0.9rem] mt-2">
+            {{ card.titulo }}
+          </h6>
+        </div>
+      </div>
+    </div>
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   </div>
 </template>
 
 <script setup>
-import { computed, h } from 'vue'
+import { computed, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth.js'
 
 const router = useRouter(), authStore = useAuthStore()
 const nomeUsuario = computed(() => authStore.usuario?.nome || 'Visitante')
+
+// Estado do modal
+const modal = reactive({ visible: false })
+
+const efetuarLogout = () => {
+  modal.visible = false
+  authStore.logout()
+}
 
 const cards = [
   { titulo: 'Empreender', rota: '/empreender', iconIsImg: true, iconProps: { src: 'https://i.ibb.co/n8kWgnmt/Icon-symbolizing-entrepreneurship-and-innovation.png', alt: 'Empreender' }, iconClass: 'h-10 w-auto' },
@@ -38,35 +71,55 @@ const cards = [
 ]
 
 const irPara = (rota) => router.push(rota)
-const voltarLogin = () => authStore.logout()
 </script>
 
 <style scoped>
-@keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-.animate-fadeIn { animation: fadeIn 1s ease-out; }
-
-@media (max-width: 639px) {
-  .textoSaudacao { font-size: 1.5rem !important; position: relative; top: 3rem !important; }
-  .subtextoSaudacao { font-size: 0.9rem !important; position: relative; top: 3rem !important;}
-  .metadeSuperior { padding-top: 20px !important; }
-  .logoIaraMenu { height: 57vh !important; margin-bottom: -20px !important; margin-top: -40px !important; }
-  .grid-cards { gap: 10px !important; }
-  .card-item { padding: 8px !important; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-
-@media (min-width: 640px) and (max-width: 1023px) {
-  .textoSaudacao { font-size: 1.8rem !important; }
-  .logoIaraMenu { height: 55vh !important; }  
-  .grid-cards { max-width: 500px !important; }
-}
-
-@media (min-width: 1024px) {
-  .textoSaudacao { font-size: 1.5rem !important; position: relative; top: 3.5rem !important; }
-  .subtextoSaudacao { position: relative; top: 3rem !important; } 
-  .grid-cards { grid-template-columns: repeat(4, 1fr) !important; grid-template-rows: 1fr !important; max-width: 1000px !important; height: auto !important; padding: 40px !important; }
-  .card-item { height: 200px !important; }
-}
+.animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
 
 .border-aqua { border-color: aqua; }
-.text-aqua { color: aqua; }
+.text-aqua   { color: aqua; }
+
+/* ── Mobile pequeno (< 640px) ─────────────────────────────────── */
+@media (max-width: 639px) {
+  .textoSaudacao    { font-size: 1.5rem; }
+  .subtextoSaudacao { font-size: 0.9rem; }
+  .logoIaraMenu {
+    height: 38vh;
+    margin-top: -10px;
+    margin-bottom: -60px; 
+  }
+  .grid-cards { gap: 10px; }
+  .card-item  { padding: 8px; min-height: 80px; }
+  .card-titulo { font-size: 0.78rem; }
+}
+
+/* ── Tablet (640px – 1023px) ──────────────────────────────────── */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .textoSaudacao { font-size: 1.8rem; }
+  .logoIaraMenu  {
+    height: 48vh;
+    margin-bottom: -100px;
+  }
+  .grid-cards { max-width: 500px; }
+}
+
+/* ── Desktop (≥ 1024px) ───────────────────────────────────────── */
+@media (min-width: 1024px) {
+  .saudacaoContainer { margin-bottom: -60px; } 
+  .logoIaraMenu {
+    height: 55vh;
+    margin-bottom: -160px; 
+  }
+  .grid-cards {
+    grid-template-columns: repeat(4, 1fr) !important;
+    grid-template-rows: 1fr !important;
+    max-width: 1000px;
+    padding: 20px;
+  }
+  .card-item { height: 180px; }
+}
 </style>

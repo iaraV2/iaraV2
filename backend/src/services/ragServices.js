@@ -2,7 +2,7 @@
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { PineconeStore } from "@langchain/pinecone";
 import { Pinecone } from "@pinecone-database/pinecone";
-import { OllamaEmbeddings } from "@langchain/ollama";
+import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 
 //! importações específicas para o LCEL
@@ -23,14 +23,14 @@ import { extrairTextoDoDrive } from './driveService.js';
 const pinecone = new Pinecone({
   apiKey: process.env.PINECONE_API_KEY,
 });
-// const pineconeIndex = pinecone.Index(process.env.PINECONE_INDEX);
+
+//? acessa o indice especifico da aplicação, onde os vetores serão guardados e consultados
 const pineconeIndex = pinecone.index(process.env.PINECONE_INDEX);
 
 
 //? Instancia do ollama pra transformar texto em números (embeddings)
-const embeddings = new OllamaEmbeddings({
-  model: "nomic-embed-text",
-  baseUrl: "http://localhost:11434", 
+const embeddings = new GoogleGenerativeAIEmbeddings({
+  model: "text-embedding-004",
 });
 
 //? Instancia do Google Gemini, a llm responsavel por responder as perguntas dos alunos

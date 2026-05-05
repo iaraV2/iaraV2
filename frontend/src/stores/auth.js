@@ -75,7 +75,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   /** Realiza o cadastro de novo usuário */
   async function cadastrar(nome, email, senha, tema) {
-    const { data } = await api.post('/iara/cadastro', { nome, email, senha, tema })
+    const { data } = await api.post('/cadastro', { nome, email, senha, tema })
     return data
   }
 

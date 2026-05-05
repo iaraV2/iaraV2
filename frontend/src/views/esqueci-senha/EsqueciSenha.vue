@@ -15,7 +15,7 @@
       <!-- FORMULÁRIO -->
       <form @submit.prevent="handleSubmit" class="relative lg:bottom-[21rem] -translate-y-[16.5rem] md:translate-y-0 w-full flex flex-col items-center gap-4">
         <p class="font-['Quicksand'] text-white text-center mb-2 px-2 text-sm md:text-base w-72">Digite seu e-mail para receber o link de recuperação.</p>
-        <input v-model="email" type="email" placeholder="Seu Email" required alt="email" class="w-72 mx-auto h-13 rounded-full pl-6 pr-4 font-['Quicksand'] text-lg text-black bg-white shadow-md outline-none focus:ring-2 focus:ring-cyan-400 placeholder:font-medium placeholder:text-gray-400" />
+        <input v-model="email" type="email" placeholder="Seu Email" required alt="email" class="w-72 mx-auto h-13 rounded-full pl-6 pr-4 font-['Quicksand'] text-lg text-black bg-white shadow-md outline-none focus:ring-2 focus:ring-cyan-400 placeholder:font-medium text-center placeholder:text-gray-400" />
 
         <button type="submit" :disabled="carregando" alt="enviar" class="w-72 mx-auto h-13 mt-2 rounded-full bg-[#e25300] hover:bg-[#ff7b00] text-white font-['Quicksand'] font-bold text-lg transition-all duration-200 disabled:opacity-50">
           {{ carregando ? 'Aguarde...' : 'ENVIAR LINK' }}
@@ -45,7 +45,7 @@ async function handleSubmit() {
   try {
     await api.post('/esqueci-senha', { email: email.value })
     toast.success('Se o e-mail existir, um link será enviado em breve.')
-    router.push('/login')
+    router.push('/resetar-senha')
   } catch (e) {
     toast.error('Ocorreu um erro ao tentar recuperar a senha.')
   } finally { carregando.value = false }
