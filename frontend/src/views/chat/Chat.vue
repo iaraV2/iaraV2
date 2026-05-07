@@ -88,7 +88,7 @@ const IconeEnviar = defineComponent({
 
 onMounted(async () => {
   try {
-    const { data } = await api.get("/iara/chat/historico")
+    const { data } = await api.get("/chat/historico")
     mensagens.value = data.map(m => ({ texto: m.texto, tipo: m.quemEnviou === "usuario" ? "enviada" : "recebida" }))
   } catch (e) { console.error(e) }
 })
@@ -98,7 +98,7 @@ async function enviarMensagem() {
   const msg = texto.value; texto.value = ""; carregando.value = true
   mensagens.value.push({ texto: msg, tipo: "enviada" })
   try {
-    const { data } = await api.post("/iara/chat/enviar", { mensagem: msg })
+    const { data } = await api.post("/chat/enviar", { mensagem: msg })
     mensagens.value.push({ texto: data.resposta, tipo: "recebida" })
   } catch (e) { mensagens.value.push({ texto: "Erro de conexão. 😴", tipo: "recebida" }) }
   finally { carregando.value = false }

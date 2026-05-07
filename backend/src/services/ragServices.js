@@ -1,128 +1,307 @@
-//! importações tradicionais do Langchain
+// backend/src/services/ragServices.js
+
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { PineconeStore } from "@langchain/pinecone";
 import { Pinecone } from "@pinecone-database/pinecone";
-import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
+import { Embeddings } from "@langchain/core/embeddings";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
-
-//! importações específicas para o LCEL
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { StringOutputParser } from "@langchain/core/output_parsers";
 import { RunnableSequence } from "@langchain/core/runnables";
 import 'dotenv/config';
+import { extrairTextoDoDrive, listarArquivosDaPasta } from './driveService.js';
 
-//! Importação dos serviços de leitura do Drive e de interação com o Pinecone
-import { extrairTextoDoDrive } from './driveService.js';
-// ❌ COMENTADO: isso estava causando conflito porque a função já é declarada abaixo
-// import { salvarDocumentoNoPinecone } from './services/ragService.js';
-
-
-
-
-//? Instancia o Pinecone (banco de vetores) para guardar os vetores (conhecimento)
-const pinecone = new Pinecone({
-  apiKey: process.env.PINECONE_API_KEY,
-});
-
-//? acessa o indice especifico da aplicação, onde os vetores serão guardados e consultados
+const pinecone      = new Pinecone({ apiKey: process.env.PINECONE_API_KEY });
 const pineconeIndex = pinecone.index(process.env.PINECONE_INDEX);
 
 
-//? Instancia do ollama pra transformar texto em números (embeddings)
-const embeddings = new GoogleGenerativeAIEmbeddings({
-  model: "text-embedding-004",
-});
+// ─── Classe customizada de embeddings ─────────────────────────────────────────
+class GeminiCustomEmbeddings extends Embeddings {
+  constructor() { super({}); }
 
-//? Instancia do Google Gemini, a llm responsavel por responder as perguntas dos alunos
+  async _chamarAPI(texto) {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key=${process.env.GOOGLE_API_KEY}`,
+      {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({
+          model:   "models/gemini-embedding-001",
+          content: { parts: [{ text: texto }] },
+        }),
+      }
+    );
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error?.message || "Google API Error");
+    return data.embedding.values;
+  }
 
-const llm = new ChatGoogleGenerativeAI({
-  model: "gemini-2.5-flash", 
-  apiKey: process.env.GOOGLE_API_KEY,
-});
+  async embedQuery(text)      { return await this._chamarAPI(text); }
+  async embedDocuments(texts) {
+    const vectors = [];
+    for (const t of texts) {
+      vectors.push(await this._chamarAPI(t));
+      await new Promise(r => setTimeout(r, 500));
+    }
+    return vectors;
+  }
+}
 
+const embeddings = new GeminiCustomEmbeddings();
 
-//! fase de aprendizado: recebe o texto bruto do material da aula, quebra em pedaços, transforma em vetores e guarda no Pinecone
+// ─── Remove campos aninhados que o Pinecone rejeita ───────────────────────────
+function limparMetadata(metadata) {
+  const limpa = {};
+  for (const [chave, valor] of Object.entries(metadata)) {
+    if (chave === 'loc') continue;
+    if (
+      typeof valor === 'string'  ||
+      typeof valor === 'number'  ||
+      typeof valor === 'boolean' ||
+      (Array.isArray(valor) && valor.every(v => typeof v === 'string'))
+    ) {
+      limpa[chave] = valor;
+    } else {
+      limpa[chave] = JSON.stringify(valor);
+    }
+  }
+  return limpa;
+}
 
-//? Função principal para aprender uma nova aula: recebe o ID do arquivo no Drive, extrai o texto, e salva no Pinecone
-const aprenderNovaAula = async (idDoArquivoNoDrive) => {
+// ─── Aprender um único arquivo ─────────────────────────────────────────────────
+export const aprenderNovaAula = async (idDoArquivoNoDrive) => {
   const textoExtraido = await extrairTextoDoDrive(idDoArquivoNoDrive);
-
   await salvarDocumentoNoPinecone(textoExtraido, {
-    origem: "Google Drive",
-    arquivoId: idDoArquivoNoDrive,
-    dataAprendizado: new Date().toISOString()
+    origem:          "Google Drive",
+    arquivoId:       idDoArquivoNoDrive,
+    dataAprendizado: new Date().toISOString(),
   });
-
-  console.log("IAra aprendeu o conteúdo com sucesso!");
+  console.log(`✅ IAra aprendeu o conteúdo com sucesso!`);
 };
 
-//? Função para salvar o texto extraído no Pinecone, transformando em vetores e guardando com metadados
+// ─── Treinar todos os PDFs de uma pasta ───────────────────────────────────────
+export const treinarTodosOsArquivosDaPasta = async (folderId) => {
+  console.log(`🔍 Procurando PDFs na pasta: ${folderId}...`);
+
+  try {
+    const descricao = await pinecone.describeIndex(process.env.PINECONE_INDEX);
+    console.log('🔎 [DIAGNÓSTICO PINECONE] Configuração do índice:');
+    console.log(`   Nome:      ${descricao.name}`);
+    console.log(`   Dimension: ${descricao.dimension}  ← deve ser 3072 para gemini-embedding-001`);
+    console.log(`   Metric:    ${descricao.metric}`);
+    console.log(`   Status:    ${descricao.status?.state}`);
+
+    if (descricao.dimension !== 3072) {
+      console.error(`\n❌ [ERRO DE CONFIGURAÇÃO] O índice tem ${descricao.dimension} dimensões.`);
+      console.error(`   O gemini-embedding-001 gera vetores de 3072 dimensões.`);
+      throw new Error(`Dimensão do índice incompatível: esperado 3072, encontrado ${descricao.dimension}.`);
+    }
+  } catch (e) {
+    if (e.message.includes('incompatível')) throw e;
+    console.warn('⚠️  Não consegui verificar o índice:', e.message);
+  }
+
+  const arquivos = await listarArquivosDaPasta(folderId);
+  if (!arquivos?.length) {
+    console.log("Nenhum PDF encontrado na pasta.");
+    return "Nenhum arquivo novo para aprender.";
+  }
+
+  console.log(`\n📚 Encontrei ${arquivos.length} arquivos. Iniciando aprendizado...`);
+
+  for (const arquivo of arquivos) {
+    console.log(`\n🧠 Aprendendo: ${arquivo.name}`);
+    try {
+      await aprenderNovaAula(arquivo.id);
+    } catch (erro) {
+      console.error(`❌ Erro em "${arquivo.name}": ${erro.message}`);
+    }
+  }
+
+  console.log("\n🎉 Treinamento da pasta concluído!");
+  return `Treinamento finalizado. ${arquivos.length} arquivos processados.`;
+};
+
+// ─── Salvar documento no Pinecone ──────────────────────────────────────────────
 export const salvarDocumentoNoPinecone = async (textoBruto, metadados = {}) => {
-    const splitter = new RecursiveCharacterTextSplitter({
-        chunkSize: 1000,
-        chunkOverlap: 200,
+  const textoLimpo = textoBruto.replace(/\0/g, '').replace(/\u0000/g, '').trim();
+  if (!textoLimpo) throw new Error("O texto do PDF ficou vazio após a limpeza.");
+
+  const splitter    = new RecursiveCharacterTextSplitter({ chunkSize: 1000, chunkOverlap: 200 });
+  const docs        = await splitter.createDocuments([textoLimpo], [metadados]);
+  const docsValidos = docs.filter(doc => doc.pageContent?.trim().length > 0);
+  if (!docsValidos.length) throw new Error("O fatiador não gerou nenhum bloco válido.");
+
+  console.log(`⏳ Vetorizando ${docsValidos.length} pedaços via API do Gemini...`);
+
+  const records = [];
+
+  for (let i = 0; i < docsValidos.length; i++) {
+    const doc   = docsValidos[i];
+    const texto = doc.pageContent;
+
+    process.stdout.write(`  → Pedaço ${i + 1}/${docsValidos.length}... `);
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key=${process.env.GOOGLE_API_KEY}`,
+      {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({
+          model:   "models/gemini-embedding-001",
+          content: { parts: [{ text: texto }] },
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.log(`⚠️  Erro da API Gemini: ${data.error?.message} — pedaço ignorado.`);
+      continue;
+    }
+
+    const vetor = data.embedding?.values;
+
+    if (!Array.isArray(vetor) || vetor.length === 0) {
+      console.log(`⚠️  Vetor vazio — pedaço ignorado.`);
+      continue;
+    }
+
+    records.push({
+      id:     `${metadados.arquivoId}-pedaco-${i}`,
+      values: vetor,
+      metadata: {
+        ...limparMetadata(doc.metadata),
+        text: texto,
+      },
     });
 
-    const docs = await splitter.createDocuments([textoBruto], [metadados]);
+    process.stdout.write(`✓ (${vetor.length}d)\n`);
 
-    await PineconeStore.fromDocuments(docs, embeddings, {
-        pineconeIndex,
+    if (i < docsValidos.length - 1) {
+      await new Promise(r => setTimeout(r, 3000));
+    }
+  }
+
+  if (!records.length) {
+    throw new Error("Todos os vetores vieram vazios. Verifique a cota da API.");
+  }
+
+  const descricao = await pinecone.describeIndex(process.env.PINECONE_INDEX);
+  const host = descricao.host;
+
+  console.log(`🚀 Salvando ${records.length} registros direto no servidor do Pinecone via REST API...`);
+
+  const LOTE = 100;
+  for (let i = 0; i < records.length; i += LOTE) {
+    const lote = records.slice(i, i + LOTE);
+
+    const response = await fetch(`https://${host}/vectors/upsert`, {
+      method: 'POST',
+      headers: {
+        'Api-Key': process.env.PINECONE_API_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ vectors: lote })
     });
 
-    return "Documento aprendido e guardado na memória da IAra!";
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error(`\n❌ [ERRO DO SERVIDOR PINECONE]`, JSON.stringify(errorData, null, 2));
+      throw new Error(`O servidor recusou os dados: ${response.status}`);
+    }
+
+    console.log(`  → ${Math.min(i + LOTE, records.length)}/${records.length} salvos com sucesso ✓`);
+  }
+
+  return "Documento aprendido e guardado na memória da IAra!";
 };
 
+// ─── Consultar a IA ────────────────────────────────────────────────────────────
 
-//! fase de consulta: recebe a pergunta do aluno, busca o contexto relevante no Pinecone, e gera a resposta usando o Gemini
-
+// ─── Consultar a IA ────────────────────────────────────────────────────────────
 export const consultarIA = async (pergunta) => {
-    
-    const vectorStore = await PineconeStore.fromExistingIndex(embeddings, { pineconeIndex }); 
-    const retriever = vectorStore.asRetriever({ k: 3 });    
+  try {
+    console.log(`\n🗣️ Aluno perguntou: "${pergunta}"`);
+    console.log(`⏳ Buscando conhecimentos no Pinecone...`);
 
-    const prompt = ChatPromptTemplate.fromTemplate(`
+    const vectorStore = await PineconeStore.fromExistingIndex(embeddings, { pineconeIndex });
+    const retriever   = vectorStore.asRetriever({ k: 3 });
+
+    // 1. Busca os fragmentos de aula no banco de dados
+    const docs = await retriever.invoke(pergunta);
+    console.log(`📚 Encontrei ${docs.length} blocos de texto para basear a resposta.`);
+    const contexto = docs.map(doc => doc.pageContent).join("\n\n");
+
+    console.log(`🧠 Pensando na melhor resposta pedagógica...`);
+
+    const promptTexto = `
       Você é a IAra, uma inteligência artificial companheira de aprendizagem.
-      
+
       SEU PROPÓSITO:
       Auxiliar pessoas das comunidades originárias, ribeirinhas e mulheres em situação de vulnerabilidade na construção de conhecimentos sobre empreendedorismo e inclusão digital.
 
-      SUA PEDAGOGIA:
-      Sua abordagem é fortemente inspirada na educação popular de Paulo Freire, Carlos Rodrigues Brandão e Madalena Freire.
+      SUA PEDAGOGIA (Educação Popular):
       - Use uma linguagem extremamente simples, acolhedora, afetuosa e acessível.
-      - NUNCA use jargões técnicos de tecnologia ou negócios sem explicá-los com analogias do dia a dia da comunidade (ex: rios, pesca, artesanato, feira).
-      - Valorize o saber popular. O aluno não é uma tábua rasa, ele tem conhecimentos de vida que devem ser respeitados.
-      - Seja encorajadora e construa a resposta "com" o aluno, não apenas entregue a resposta pronta.
+      - NUNCA use jargões técnicos de tecnologia ou negócios sem explicá-los com analogias do dia a dia da comunidade (ex: rios, pesca, mata, agricultura, artesanato, costura).
+      - Construa o conhecimento "com" o aluno, de forma dialogada.
+
+      REGRAS DE FORMATAÇÃO E TAMANHO (OBRIGATÓRIO):
+      1. SEJA MUITO SUCINTA: Suas respostas devem ser curtas e diretas. Escreva no máximo 2 ou 3 parágrafos pequenos.
+      2. SEM TEXTÕES: Vá direto ao ponto de forma amigável.
+      3. PASSE A PALAVRA: Termine sua resposta com uma pergunta simples e acolhedora para incentivar o aluno a continuar a reflexão com você.
 
       REGRA DE CONHECIMENTO:
-      Use ESTRITAMENTE os materiais da aula fornecidos no CONTEXTO abaixo para fundamentar sua resposta. 
-      Se a informação solicitada não estiver no contexto, seja honesta. Diga com carinho que ainda não aprendeu sobre isso no material da aula, mas incentive a curiosidade do aluno.
+      Use ESTRITAMENTE os materiais da aula fornecidos no CONTEXTO abaixo.
+      Se a resposta não estiver no contexto, diga com carinho que ainda não aprendeu sobre isso.
 
-      CONTEXTO DA AULA: 
-      {context}
+      CONTEXTO DA AULA:
+      ${contexto}
 
-      PERGUNTA DO ALUNO: {input}
-      RESPOSTA DA IARA:
-    `);
+      PERGUNTA DO ALUNO: ${pergunta}
+      RESPOSTA DA IARA (Curta, em tom de conversa):
+    `;
 
-    // A MÁGICA MODERNA (LCEL): Nossa Linha de Montagem
-    const chain = RunnableSequence.from([
-        {
-            // Passo 1: Busca o contexto no Pinecone e junta os textos
-            context: async (input) => {
-                const docs = await retriever.invoke(input);
-                return docs.map(doc => doc.pageContent).join("\n\n");
-            },
-            // Passo 2: Repassa a pergunta inalterada
-            input: (input) => input
-        },
+    const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
 
-        prompt,
-        llm,
-        new StringOutputParser()
-    ]);
+    console.log(`🔍 Consultando o Google para ver quais modelos sua chave pode usar...`);
+    const listResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${GOOGLE_API_KEY}`);
+    const listData = await listResp.json();
 
-    // Executa a linha de montagem inteira
-    const response = await chain.invoke(pergunta);
+    if (!listResp.ok) throw new Error("Falha ao listar modelos do Google: " + listData.error?.message);
+
+    // Filtra só os modelos que suportam geração de texto
+    const modelosTexto = listData.models.filter(m => m.supportedGenerationMethods?.includes("generateContent"));
     
-    return response;
+    const nomeModelo = modelosTexto.find(m => m.name.includes("gemini-1.5-flash"))?.name
+                    || modelosTexto.find(m => m.name.includes("gemini-1.5-pro"))?.name
+                    || modelosTexto.find(m => m.name.includes("gemini-2"))?.name
+                    || modelosTexto.find(m => m.name.includes("gemini"))?.name;
+
+    if (!nomeModelo) throw new Error("Nenhum modelo Gemini compatível encontrado na sua conta.");
+
+    console.log(`🎯 Modelo oficial liberado e escolhido: ${nomeModelo}`);
+
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/${nomeModelo}:generateContent?key=${GOOGLE_API_KEY}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            contents: [{ role: "user", parts: [{ text: promptTexto }] }]
+        })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.error?.message || "Erro desconhecido na API do Google");
+    }
+
+    console.log(`✅ Resposta gerada e enviada!`);
+    return data.candidates[0].content.parts[0].text;
+
+  } catch (erro) {
+    console.error("\n❌ [RAIO-X] ERRO VERDADEIRO NA CONSULTA:", erro);
+    throw erro; 
+  }
 };
