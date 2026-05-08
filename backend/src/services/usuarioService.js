@@ -3,7 +3,7 @@
 // Motivo: DigitalOcean bloqueia portas SMTP (25, 465, 587) em droplets novos.
 // O Resend envia e-mails via HTTPS (porta 443) — nunca bloqueada.
 
-import { buscarUsuarioPorEmail, deletarUsuario, atualizarUsuario, buscarUsuarioPorToken, adicionarUsuario, buscarUsuarioPorId } from "../models/usuarioModel.js";
+import { buscarUsuarioPorEmail, deletarUsuario, atualizarUsuario, buscarUsuarioPorToken, adicionarUsuario,} from "../models/usuarioModel.js";
 import bcrypt   from "bcryptjs";
 import jwt      from "jsonwebtoken";
 import crypto   from "crypto";
@@ -98,31 +98,6 @@ async function enviarEmailAprovacaoProfessor({ nome, email, idCriado, tokenAprov
         `,
     });
 }
-
-
-//! ─── APROVAR PROFESSOR ────────────────────────────────────────────────────────
-const aprovarProfessorService = async (token, idUsuario) => {
-    const usuario = await buscarUsuarioPorId(idUsuario);
-    if (!usuario)                              throw new Error('Usuário não encontrado.');
-    if (usuario.tokenAprovacao !== token)      throw new Error('Link de aprovação inválido ou já utilizado.');
-    if (usuario.role !== 'professor_pendente') throw new Error('Este cadastro já foi processado.');
-
-    await atualizarUsuario(idUsuario, { role: 'professor', tokenAprovacao: null });
-
-    await enviarEmail({
-        para:    usuario.email,
-        assunto: '🎉 IAra — Seu cadastro como Professor foi aprovado!',
-        html: `
-            <div style="font-family:sans-serif;max-width:500px;margin:auto;padding:24px;border-radius:12px;background:#f9f5ff;border:1px solid #d8b4fe;">
-                <h2 style="color:#420583;">Olá, ${usuario.nome}! 🌿</h2>
-                <p>Sua solicitação como <strong>Professor(a)</strong> foi <strong>aprovada</strong>!</p>
-                <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/login" style="display:inline-block;margin-top:16px;padding:12px 28px;background:#420583;color:white;border-radius:999px;text-decoration:none;font-weight:bold;">Acessar a IAra</a>
-            </div>
-        `,
-    });
-
-    return { mensagem: `Professor ${usuario.nome} aprovado com sucesso!` };
-};
 
 
 //! ─── LOGIN ────────────────────────────────────────────────────────────────────
@@ -234,7 +209,6 @@ const realizarResetSenha = async (token, novaSenha) => {
 
 export {
     cadastrarUsuarioService,
-    aprovarProfessorService,
     loginUsuarioService,
     editarUsuarioService,
     deletarUsuarioService,
