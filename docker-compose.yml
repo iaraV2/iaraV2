@@ -15,7 +15,7 @@ services:
       - PINECONE_INDEX=${PINECONE_INDEX}
       - GOOGLE_API_KEY=${GOOGLE_API_KEY}
     env_file:
-      - .env 
+      - ./backend/.env
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:

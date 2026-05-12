@@ -1,3 +1,7 @@
+//atualizacao: ag ora injeta req.userRole al[em da req.userID
+/// o roleMiddleware e turmaMiddleware dependem de req.userRole
+
+
 import jwt from "jsonwebtoken";
 import 'dotenv/config'; //? Use o .env com dotenv/config para guardar a chave JWT_SECRET em segurança fora do código.
 
@@ -16,10 +20,11 @@ export const authMiddleware = (req, res, next) => {
     const decoded = jwt.verify(token, JWT_SECRET);
     
     req.userId = decoded.id;              //? O controller saberá quem está fazendo a requisição e poderá aplicar regras de negócio (ex.: só editar/deletar a própria conta).
+    req.userRole = decoded.role || 'aluno'; // injetado aqui para roleMiddleware e turmaMiddleware
 
     next();                              //? Se a verificação for bem-sucedida, prossegue para a próxima função (o Controller)
 
     } catch (err) {
-    return res.status(401).json({ message: 'Acesso negado: Token expirado'})
+    return res.status(401).json({ message: 'Acesso negado: Token expirado ou inválido'});
     }
 }

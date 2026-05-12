@@ -27,38 +27,31 @@ const routes = [
     meta: { requerAuth: false, somenteDeslogado: true },
   },
   {
-    path: '/resetar-senha',
-    name: 'ResetarSenha',
-    component: () => import('../views/resetar-senha/ResetarSenha.vue'),
-    meta: { requerAuth: false, somenteDeslogado: true },
-  },
-  {
     path: '/menu',
     name: 'Menu',
     component: () => import('../views/menu/Menu.vue'),
-    meta: { requerAuth: true },
+    meta: { requerAuth: false },
   },
   {
     path: '/sala-de-aula',
     name: 'SalaDeAula',
     component: () => import('../views/sala_de_aula/sala-de-aula.vue'),
-    meta: { requerAuth: true },
+    meta: { requerAuth: false },
   },
   {
     path: '/chat',
     name: 'Chat',
     component: () => import('../views/chat/Chat.vue'),
-    meta: { requerAuth: true },
+    meta: { requerAuth: false },
   },
   {
     path: '/:pathMatch(.*)*',
     redirect: '/'
   }
-
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory(), // ✅ CORREÇÃO: removido o argumento (antes estava import.meta.env.BASE_URL)
   routes,
   scrollBehavior: () => ({ top: 0 }),
 })
