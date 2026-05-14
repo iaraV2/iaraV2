@@ -39,6 +39,20 @@ const routes = [
     meta: { requerAuth: false },
   },
   {
+    path: '/sala-de-aula/:salaId/aulas',
+    name: 'ListaAulasSala',
+    component: () => import('../views/sala_de_aula/Lista.vue'),
+    props: true,
+    meta: { requerAuth: false },
+  },
+  {
+  path: '/aula/:id/:titulo/:nivel/:progresso/:videoId',
+  name: 'Aula',
+  component: () => import('../views/sala_de_aula/Aula.vue'),
+  props: true, // Isso permite que os parâmetros virem variáveis automáticas
+  meta: { requerAuth: false },
+},
+  {
     path: '/chat',
     name: 'Chat',
     component: () => import('../views/chat/Chat.vue'),
@@ -51,7 +65,7 @@ const routes = [
 ]
 
 const router = createRouter({
-  history: createWebHistory(), // ✅ CORREÇÃO: removido o argumento (antes estava import.meta.env.BASE_URL)
+  history: createWebHistory(), 
   routes,
   scrollBehavior: () => ({ top: 0 }),
 })

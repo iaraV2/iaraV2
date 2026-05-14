@@ -1,15 +1,16 @@
 <template>
-  <div class="min-h-screen bg-[#420583] flex flex-col items-center py-6 px-4 overflow-y-auto">
+  <!-- h-screen trava a altura; overflow-hidden impede scroll por padrão; scroll-pequeno habilita scroll se a tela for baixa -->
+  <div class="h-screen w-full bg-[#420583] flex flex-col items-center py-6 px-4 overflow-hidden relative scroll-pequeno">
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
 
     <!-- Título -->
-    <div class="text-center w-full">
+    <div class="text-center w-full shrink-0">
       <h1 class="font-['Quicksand'] text-cyan-400 font-light text-3xl md:text-4xl leading-tight relative top-4 md:top-0">Junte-se</h1>
       <h1 class="font-['Quicksand'] text-cyan-400 font-bold text-3xl md:text-4xl leading-tight relative top-2 md:top-0">à Comunidade</h1>
     </div>
 
     <!-- Conteúdo central (imagem + formulário) -->
-    <div class="flex flex-col items-center justify-center w-full max-w-sm my-6">
+    <div class="flex flex-col items-center justify-center w-full max-w-sm flex-grow relative">
       <img src="/img/iara.png" alt="iara" class="lg:w-100 -translate-y-44 transition-transform duration-300 w-80 relative top-10 md:top-0 lg:-top-13 md:w-64 mb-3 drop-shadow-2xl" />
 
       <!-- FORMULÁRIO -->
@@ -34,7 +35,10 @@
       </form>
     </div>
 
-    <img src="/img/anjos.png" alt="anjosDigitais" class="lg:w-40 relative w-32 md:w-36 opacity-80 bottom-55 md:bottom-auto lg:-translate-y-[60%]" />
+    <!-- Rodapé -->
+    <div class="shrink-0 flex justify-center w-full pb-4">
+      <img src="/img/anjos.png" alt="anjosDigitais" class="lg:w-40 relative w-32 md:w-36 opacity-80 bottom-55 md:bottom-auto lg:-translate-y-[60%]" />
+    </div>
 
     <!-- Toast Customizado -->
     <div v-if="msg.visible" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-80 bg-black text-white p-4 rounded-lg shadow-lg flex flex-col justify-between h-20">
@@ -76,6 +80,19 @@ async function handleSubmit() {
 </script>
 
 <style scoped>
+/* TRAVA O SCROLL DO NAVEGADOR */
+:deep(html), :deep(body) {
+  overflow: hidden !important;
+  height: 100% !important;
+}
+
+/* LIBERA O SCROLL APENAS EM TELAS CURTAS (MOBILE OU LANDSCAPE) */
+@media (max-height: 700px) {
+  .scroll-pequeno {
+    overflow-y: auto !important;
+  }
+}
+
 /* AJUSTES PARA DESKTOP (Geral) */
 @media (min-width: 1024px) {
   img[alt="iara"] {
@@ -96,7 +113,7 @@ async function handleSubmit() {
   .max-w-sm { max-width: 450px !important; }
 }
 
-/* RESTAURANDO NOTEBOOKS (1366x768) - COMO ESTAVA ANTES */
+/* RESTAURANDO NOTEBOOKS (1366x768) */
 @media (min-width: 1025px) and (max-width: 1366px) and (max-height: 720px) { 
   h1 { font-size: 1.8em !important; bottom: 4rem !important; }
   img[alt="iara"] { width: 17rem !important; position: relative; top: -1rem !important; }
