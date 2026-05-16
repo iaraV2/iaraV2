@@ -53,6 +53,18 @@ const routes = [
   meta: { requerAuth: false },
 },
   {
+    path: '/favoritos',
+    name: 'Favoritos',
+    component: () => import('../views/sala_de_aula/favoritos.vue'),
+    meta: { requerAuth: false },
+  },
+  {
+    path: '/perfil',
+    name: 'Perfil',
+    component: () => import('../views/sala_de_aula/perfil.vue'),
+    meta: { requerAuth: false },
+  },
+  {
     path: '/chat',
     name: 'Chat',
     component: () => import('../views/chat/Chat.vue'),

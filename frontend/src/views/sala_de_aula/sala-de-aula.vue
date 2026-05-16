@@ -3,25 +3,14 @@
     
     <!-- BOTÃO VOLTAR -->
     <button
-      @click="router.push('/menu')"
-      class="fixed top-5 left-5 z-[1000] bg-black/30 backdrop-blur-sm border border-transparent text-white
-             rounded-full cursor-pointer font-bold
-             hover:bg-orange-500 hover:text-white hover:border-orange-400 transition-all duration-300
-             flex items-center justify-center shadow-lg w-7 h-7"
-    >
-      <svg 
-        xmlns="http://www.w3.org/2000/svg" 
-        class="w-4 h-4"
-        viewBox="0 0 24 24" 
-        fill="none" 
-        stroke="currentColor" 
-        stroke-width="2" 
-        stroke-linecap="round" 
-        stroke-linejoin="round"
-      >
-        <path d="M19 12H5M12 19l-7-7 7-7"/>
-      </svg>
-    </button>
+  type="button"
+  @click="router.push('/menu')"
+  class="fixed top-8 left-5 z-[1000] w-10 h-10 flex items-center justify-center bg-white/10 backdrop-blur-md border border-white/15 text-white rounded-full cursor-pointer transition-all duration-300 hover:bg-cyan-400 hover:border-cyan-400 hover:text-[#420583] hover:scale-105 active:scale-95"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+    <path d="m15 18-6-6 6-6"/>
+  </svg>
+</button>
 
     <div class="w-full text-center mt-16 mb-8 shrink-0">
       <h1 class="text-cyan-400 font-light text-2xl md:text-3xl leading-tight relative top-5">Bem-Vindo à</h1>

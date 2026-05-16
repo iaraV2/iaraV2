@@ -2,35 +2,24 @@
   <div class="menu-container fixed top-0 left-0 w-full h-screen flex flex-col bg-[#380075] overflow-y-auto z-[999]">
     
     <!-- BOTÃO VOLTAR SOFISTICADO - BORDA TRANSPARENTE -->
-    <button 
-      @click="modal.visible = true" 
-      class="fixed top-10 left-5 z-[100] bg-black/30 backdrop-blur-sm border border-transparent text-white
-             rounded-full cursor-pointer font-bold
-             hover:bg-orange-500 hover:text-white hover:border-transparent transition-all duration-300
-             flex items-center justify-center shadow-lg w-8 h-8"
-    >
-      <svg 
-        xmlns="http://www.w3.org/2000/svg" 
-        class="w-4 h-4"
-        viewBox="0 0 24 24" 
-        fill="none" 
-        stroke="currentColor" 
-        stroke-width="2" 
-        stroke-linecap="round" 
-        stroke-linejoin="round"
-      >
-        <path d="M19 12H5M12 19l-7-7 7-7"/>
-      </svg>
-    </button>
+<button
+  type="button"
+  @click="modal.visible = true"
+  class="fixed top-12 left-5 z-[1000] w-10 h-10 flex items-center justify-center bg-white/10 backdrop-blur-md border border-white/15 text-white rounded-full cursor-pointer transition-all duration-300 hover:bg-cyan-400 hover:border-cyan-400 hover:text-[#420583] hover:scale-105 active:scale-95 "
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+    <path d="m15 18-6-6 6-6"/>
+  </svg>
+</button>
 
     <!-- Modal Reativo Customizado -->
     <div v-if="modal.visible" class="fixed inset-0 bg-black/60 flex items-center justify-center z-[2000] backdrop-blur-sm animate-fadeIn">
-      <div class="bg-white rounded-3xl p-8 w-80 shadow-2xl text-center">
+      <div class="bg-white rounded-3xl p-8 w-85 h-22 shadow-2xl text-center">
         <h3 class="font-['Quicksand'] font-bold text-[#420583] text-2xl mb-2">Sair da conta?</h3>
         <p class="font-['Quicksand'] text-gray-500 text-sm mb-6">Tem certeza que deseja se desconectar da IAra?</p>
         <div class="flex justify-center gap-3">
-          <button @click="modal.visible = false" class="flex-1 py-3 rounded-full font-['Quicksand'] font-bold text-gray-600 bg-gray-200 hover:bg-gray-300 transition-colors">Não</button>
-          <button @click="efetuarLogout" class="flex-1 py-3 rounded-full font-['Quicksand'] font-bold text-white bg-[#e25300] hover:bg-[#ff7b00] transition-colors">Sim, Sair</button>
+<button @click="modal.visible = false" class="w-28 py-3 rounded-full font-['Quicksand'] font-bold text-gray-600 bg-gray-200 hover:bg-gray-300 transition-colors">Não</button>
+<button @click="efetuarLogout" class="w-28 py-3 rounded-full font-['Quicksand'] font-bold text-white bg-[#e25300] hover:bg-[#ff7b00] transition-colors">Sim, Sair</button>
         </div>
       </div>
     </div>
@@ -45,7 +34,7 @@
           Como posso te ajudar hoje?
         </p>
       </div>
-      <img src="/img/iara.png" alt="Logo IAra" class="logoIaraMenu w-auto object-contain drop-shadow-[0_0_10px_rgba(0,0,0,0.3)]" />
+      <img src="/img/iara.png" alt="Logo IAra" class="logoIaraMenu w-56 h-auto object-contain drop-shadow-[0_0_10px_rgba(0,0,0,0.3)]" />
     </div>
 
     <!-- Metade inferior - Ajustada com flex-grow para eliminar margem no fim -->
