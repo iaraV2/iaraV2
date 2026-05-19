@@ -1,16 +1,10 @@
 <template>
   <div class="menu-container fixed top-0 left-0 w-full h-screen flex flex-col bg-[#380075] overflow-y-auto z-[999]">
     
-    <!-- BOTÃO VOLTAR SOFISTICADO - BORDA TRANSPARENTE -->
-<button
-  type="button"
-  @click="modal.visible = true"
-  class="fixed top-12 left-5 z-[1000] w-10 h-10 flex items-center justify-center bg-white/10 backdrop-blur-md border border-white/15 text-white rounded-full cursor-pointer transition-all duration-300 hover:bg-cyan-400 hover:border-cyan-400 hover:text-[#420583] hover:scale-105 active:scale-95 "
->
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
-    <path d="m15 18-6-6 6-6"/>
-  </svg>
-</button>
+    <BackButton
+      button-class="fixed top-12 left-5 z-[1000] w-10 h-10 flex items-center justify-center bg-white/10 backdrop-blur-md border border-white/15 text-white rounded-full cursor-pointer transition-all duration-300 hover:bg-cyan-400 hover:border-cyan-400 hover:text-[#420583] hover:scale-105 active:scale-95 btn-voltar-hover"
+      @click="modal.visible = true"
+    />
 
     <!-- Modal Reativo Customizado -->
     <div v-if="modal.visible" class="fixed inset-0 bg-black/60 flex items-center justify-center z-[2000] backdrop-blur-sm animate-fadeIn">
@@ -56,6 +50,7 @@
 <script setup>
 import { computed, reactive } from 'vue'
 import { useRouter } from 'vue-router'
+import BackButton from '../../components/ui/BackButton.vue'
 import { useAuthStore } from '../../stores/auth.js'
 
 const router = useRouter(), authStore = useAuthStore()
@@ -90,16 +85,6 @@ const irPara = (rota) => {
 
 .border-aqua { border-color: aqua; }
 .text-aqua   { color: aqua; }
-
-/* Efeito de movimento no hover do botão */
-button.fixed:hover svg {
-  transform: translateX(-2px);
-  transition: transform 0.2s ease;
-}
-
-button.fixed svg {
-  transition: transform 0.2s ease;
-}
 
 /* ── Mobile pequeno (< 640px) ─────────────────────────────────── */
 @media (max-width: 639px) {
