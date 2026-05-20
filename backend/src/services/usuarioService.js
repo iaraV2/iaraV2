@@ -2,14 +2,16 @@
 //! nossos services de usuarios deve poder cadastrar, logar, deletar a propria conta, conversar com a IA
 
 import { buscarUsuarioPorEmail, deletarUsuario, atualizarUsuario, buscarUsuarioPorToken} from "../models/usuarioModel.js";
-import bcrypt from "bcryptjs"; //? importação do bcrypt biblioteca para criptografar senhas
+import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import {adicionarUsuario} from "../models/usuarioModel.js"
 import 'dotenv/config';
-import nodemailer from 'nodemailer';
 import crypto from 'crypto';
+import { Resend } from 'resend'; // 🔥 Substituído Nodemailer pelo Resend
 
-
+// Inicialização do Resend
+const resend = new Resend(process.env.RESEND_API_KEY);
+const REMETENTE = process.env.EMAIL_REMETENTE || 'IAra Suporte <onboarding@resend.dev>';
 
 //!CADASTRO
 const cadastrarUsuarioService = async (dadosUsuario, roleRequisitante = 'publico') => {
@@ -55,7 +57,6 @@ const cadastrarUsuarioService = async (dadosUsuario, roleRequisitante = 'publico
 };
 
 //!LOGIN
-
 const loginUsuarioService = async (dadosLogin) => {
         console.log('🔍 Dados recebidos no login:', dadosLogin);
         
@@ -71,17 +72,22 @@ const loginUsuarioService = async (dadosLogin) => {
 
         const comparaSenha = await bcrypt.compare(dadosLogin.senha, usuarioEncontrado.senha)
 
-        
         if(!comparaSenha){
             throw new Error("email ou senha invalidos")
         }
 
         const JWT_SECRET = process.env.JWT_SECRET 
+        
+        // Garante que role sempre existe (fallback para 'aluno' se não tiver no Firestore)
+        const roleDoUsuario = usuarioEncontrado.role || 'aluno';
 
-        const token = jwt.sign({ id: usuarioEncontrado.id, email: usuarioEncontrado.email, role: usuarioEncontrado.role || 'aluno' }, JWT_SECRET, {expiresIn: "12h"})
+        const token = jwt.sign({ id: usuarioEncontrado.id, email: usuarioEncontrado.email, role: roleDoUsuario }, JWT_SECRET, {expiresIn: "12h"})
         
         // Remove a senha antes de retornar os dados do usuário
         const { senha: _, ...usuarioSemSenha } = usuarioEncontrado;
+        
+        // Garante que a role está no objeto retornado
+        usuarioSemSenha.role = roleDoUsuario;
 
         return {
           mensagem: "Login realizado com sucesso",
@@ -90,11 +96,8 @@ const loginUsuarioService = async (dadosLogin) => {
         }
 }
 
-
 //! Editar usuário
-
-const editarUsuarioService = async (idUsuario, novosDados) => {  //? Objeto para armazenar apenas os dados válidos para atualização
-
+const editarUsuarioService = async (idUsuario, novosDados) => {
     const dadosParaAtualizar = {};
 
     if (novosDados.senha) {
@@ -127,11 +130,8 @@ const editarUsuarioService = async (idUsuario, novosDados) => {  //? Objeto para
 }
 
 //! Deletar 
-
 const deletarUsuarioService = async (idUsuario) => {
-
     const resultado = await deletarUsuario(idUsuario);
-
     return resultado;
 };
 
@@ -152,26 +152,30 @@ const solicitarRecuperacao = async (email) => {
         resetPasswordExpires: expiracao.toISOString()
     });
 
-    //? aqui configura o transporte de email usando nodemailer e envia o email de recuperação
-    const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-            user: process.env.EMAIL_APP,
-            pass: process.env.EMAIL_SENHA 
-        }
-    });
-
-
-    const mailOptions = {
-        from: `IAra Suporte <${process.env.EMAIL_APP}>`,
+    // 🔥 Envio de E-mail via Resend
+    const { error } = await resend.emails.send({
+        from: REMETENTE,
         to: email,
         subject: 'IAra - Recuperação de Senha',
-        text: `Olá! Use o código abaixo para criar uma nova senha:\n\n${token}\n\nEste código expira em 1 hora.`
-    };
+        html: `
+            <div style="font-family:sans-serif;max-width:500px;margin:auto;padding:24px;border-radius:12px;background:#f8fafc;border:1px solid #e2e8f0;">
+                <h2 style="color:#420583;">Recuperação de Senha</h2>
+                <p>Olá! Use o código abaixo para criar uma nova senha na IAra:</p>
+                <div style="background:#e2e8f0;padding:12px;text-align:center;font-size:24px;font-weight:bold;letter-spacing:4px;border-radius:8px;margin:16px 0;">
+                    ${token}
+                </div>
+                <p style="font-size:12px;color:#64748b;">Este código expira em 1 hora.</p>
+            </div>
+        `
+    });
 
-    return await transporter.sendMail(mailOptions);
+    if (error) {
+        console.error('[usuarioService] Erro ao enviar e-mail de recuperação:', error);
+        throw new Error('Falha ao enviar e-mail de recuperação.');
+    }
+
+    return { message: "E-mail enviado com sucesso" };
 };
-
 
 //! realizar reset de senha
  const realizarResetSenha = async (token, novaSenha) => {
@@ -197,25 +201,26 @@ const solicitarRecuperacao = async (email) => {
         resetPasswordExpires: null
     });
 
-    
-    const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-            user: process.env.EMAIL_APP,
-            pass: process.env.EMAIL_SENHA 
-        }
-    });
-
-    
-    const mailOptions = {
-        from: `IAra Suporte <${process.env.EMAIL_APP}>`,
+    // 🔥 Envio de E-mail de confirmação via Resend
+    const { error } = await resend.emails.send({
+        from: REMETENTE,
         to: usuario.email,
         subject: 'IAra - Senha alterada com sucesso',
-        text: `Olá!\n\nPassando para avisar que sua senha na IAra foi alterada com sucesso.\n\nSe não foi você quem fez isso, entre em contato com o suporte imediatamente.`
-    };
+        html: `
+            <div style="font-family:sans-serif;max-width:500px;margin:auto;padding:24px;border-radius:12px;background:#f0fdf4;border:1px solid #86efac;">
+                <h2 style="color:#15803d;">Senha Atualizada!</h2>
+                <p>Olá!</p>
+                <p>Passando para avisar que sua senha na plataforma IAra foi alterada com sucesso.</p>
+                <p style="font-size:12px;color:#64748b;margin-top:20px;">Se não foi você quem fez isso, entre em contato com o suporte imediatamente.</p>
+            </div>
+        `
+    });
 
-    return await transporter.sendMail(mailOptions);
+    if (error) {
+        console.error('[usuarioService] Erro ao enviar e-mail de confirmação de senha:', error);
+    }
+
+    return { message: "Senha alterada com sucesso" };
 };
 
-export {cadastrarUsuarioService, loginUsuarioService, editarUsuarioService, deletarUsuarioService, solicitarRecuperacao, realizarResetSenha} //? exporta esse arquivo atual para o controller poder acessar
-
+export {cadastrarUsuarioService, loginUsuarioService, editarUsuarioService, deletarUsuarioService, solicitarRecuperacao, realizarResetSenha} 

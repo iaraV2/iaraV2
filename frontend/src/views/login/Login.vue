@@ -65,17 +65,18 @@ async function handleSubmit() {
   carregando.value = true
   try {
     await authStore.login(email.value, senha.value)
-
-// ← substitua o bloco anterior por este
-const perfilExistente = JSON.parse(localStorage.getItem('perfil_usuario') || '{}')
-localStorage.setItem('perfil_usuario', JSON.stringify({
-  nome: authStore.usuario?.nome || '',
-  email: authStore.usuario?.email || email.value,
-  foto: perfilExistente.foto || ''
-}))
-
     toast.success('Login realizado com sucesso!')
-    router.push('/menu') 
+    
+    const role = authStore.usuario?.role || 'aluno'
+
+    if (role === 'admin') {
+      router.push('/admin/dashboard') 
+    } else if (role === 'professor') {
+      router.push('/sala-de-aula') 
+    } else {
+      router.push('/menu') 
+    }
+    
   } catch (e) {
     const msgErro = e.response?.data?.error || e.response?.data?.message || 'Email ou senha incorretos.'
     toast.error(msgErro)

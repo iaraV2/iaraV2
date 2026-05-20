@@ -10,6 +10,7 @@ const adicionarUsuario = async(dadosUsuario) => {
           email: dadosUsuario.email,
           senha: dadosUsuario.senha,
           temaDeInteresse: dadosUsuario.temaDeInteresse,
+          role: dadosUsuario.role || 'aluno',
           criadoEm: dadosUsuario.criadoEm || new Date()
         })
         return usuarioDocRef.id

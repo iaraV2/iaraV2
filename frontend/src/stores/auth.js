@@ -66,16 +66,24 @@ export const useAuthStore = defineStore('auth', () => {
 
     token.value = data.token
     usuario.value = data.usuario || null
+    
+    // 🔐 Se a role não estiver no objeto usuario, tira do token decodificado
+    if (usuario.value && !usuario.value.role) {
+      const payload = decodificarPayload(data.token)
+      if (payload?.role) {
+        usuario.value.role = payload.role
+      }
+    }
 
     localStorage.setItem('iara_token', data.token)
-    localStorage.setItem('iara_usuario', JSON.stringify(data.usuario || null))
+    localStorage.setItem('iara_usuario', JSON.stringify(usuario.value || null))
 
     return data
   }
 
   /** Realiza o cadastro de novo usuário */
-  async function cadastrar(nome, email, senha, tema) {
-    const { data } = await api.post('/cadastro', { nome, email, senha, tema })
+  async function cadastrar(nome, email, senha, tema, role) {
+    const { data } = await api.post('/cadastro', { nome, email, senha, tema, role })
     return data
   }
 

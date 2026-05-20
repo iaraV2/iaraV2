@@ -17,6 +17,10 @@
       <form @submit.prevent="handleSubmit" class="relative lg:bottom-[21rem] -translate-y-[16.5rem] md:translate-y-0 w-full flex flex-col items-center gap-4">
         <input v-model="nome" type="text" placeholder="Nome Completo" required alt="nome" class="w-70 mx-auto h-13 rounded-full pl-6 pr-4 font-['Quicksand'] text-lg text-black bg-white shadow-md outline-none focus:ring-2 focus:ring-cyan-400 placeholder:font-medium text-center placeholder:text-gray-400" />
         <input v-model="email" type="email" placeholder="Email" required alt="email" class="w-70 mx-auto h-13 rounded-full pl-6 pr-4 font-['Quicksand'] text-lg text-black bg-white shadow-md outline-none focus:ring-2 focus:ring-cyan-400 placeholder:font-medium text-center placeholder:text-gray-400 relative z-10" />
+        <select v-model="role" class="w-70 mx-auto h-13 rounded-full pl-6 pr-10 font-['Quicksand'] text-lg text-gray-500 text-center bg-white shadow-md outline-none focus:ring-2 focus:ring-cyan-400 relative z-10 cursor-pointer">
+          <option value="aluno">Sou Aluno</option>
+          <option value="professor">Sou Professor</option>
+        </select>
         <div class="relative w-72 mx-auto">
           <input v-model="senha" :type="mostrarSenha ? 'text' : 'password'" placeholder="Senha" required alt="senha" class="w-full h-13 rounded-full pl-6 pr-12 font-['Quicksand'] text-lg text-black bg-white shadow-md outline-none focus:ring-2 focus:ring-cyan-400 placeholder:font-medium text-center placeholder:text-gray-400" />
           <button type="button" @click="mostrarSenha = !mostrarSenha" alt="mostrar_senha" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#e25300] transition-colors">
@@ -56,22 +60,29 @@ import { useAuthStore } from '../../stores/auth.js'
 const router = useRouter()
 const authStore = useAuthStore()
 
-const nome = ref(''), email = ref(''), senha = ref('')
+const nome = ref(''), email = ref(''), senha = ref(''), role = ref('aluno')
 const carregando = ref(false), mostrarSenha = ref(false)
 const msg = reactive({ visible: false, text: '', color: '', progress: 100 })
 
 function showMsg(text, color) {
   Object.assign(msg, { text, color, visible: true, progress: 100 })
   setTimeout(() => msg.progress = 0, 50)
-  setTimeout(() => msg.visible = false, 1500)
+  setTimeout(() => msg.visible = false, 2500) 
 }
 
 async function handleSubmit() {
   carregando.value = true
   try {
-    await authStore.cadastrar(nome.value, email.value, senha.value, 'Padrão')
-    showMsg('Usuário cadastrado com sucesso', 'bg-green-500')
-    setTimeout(() => router.push('/login'), 1600)
+    await authStore.cadastrar(nome.value, email.value, senha.value, 'Padrão', role.value)
+    
+    if (role.value === 'professor') {
+      showMsg('Solicitação enviada! Aguarde a aprovação de um Administrador.', 'bg-blue-500')
+      setTimeout(() => router.push('/login'), 2600)
+    } else {
+      showMsg('Usuário cadastrado com sucesso!', 'bg-green-500')
+      setTimeout(() => router.push('/login'), 1600)
+    }
+    
   } catch (e) {
     const err = e.response?.data?.message?.toLowerCase() || ''
     showMsg(err.includes('já') || err.includes('exist') ? 'Usuário já cadastrado' : 'Erro ao cadastrar', 'bg-red-500')
@@ -80,13 +91,11 @@ async function handleSubmit() {
 </script>
 
 <style scoped>
-/* TRAVA O SCROLL DO NAVEGADOR */
 :deep(html), :deep(body) {
   overflow: hidden !important;
   height: 100% !important;
 }
 
-/* LIBERA O SCROLL APENAS EM TELAS CURTAS (MOBILE OU LANDSCAPE) */
 @media (max-height: 700px) {
   .scroll-pequeno {
     overflow-y: auto !important;
@@ -109,7 +118,8 @@ async function handleSubmit() {
 
 /* DESKTOPS GRANDES */
 @media (min-width: 1200px) {
-  input, button[type="submit"], .relative.w-72.mx-auto { width: 400px !important; }
+  /* Adicionado o 'select' para crescer junto com os inputs */
+  input, select, button[type="submit"], .relative.w-72.mx-auto { width: 400px !important; }
   .max-w-sm { max-width: 450px !important; }
 }
 
@@ -117,14 +127,20 @@ async function handleSubmit() {
 @media (min-width: 1025px) and (max-width: 1366px) and (max-height: 720px) { 
   h1 { font-size: 1.8em !important; bottom: 4rem !important; }
   img[alt="iara"] { width: 17rem !important; position: relative; top: -1rem !important; }
-  input[alt="nome"], input[placeholder="Email"], input[placeholder="Senha"] { width: 17rem !important; height: 2.5rem !important; position: relative; }
+  
+  /* Adicionado o 'select' para ter o mesmo tamanho no notebook */
+  input[alt="nome"], input[placeholder="Email"], select, input[placeholder="Senha"] { width: 17rem !important; height: 2.5rem !important; position: relative; }
+  
+  /* Recalculando os espaçamentos para caber os 4 campos */
   input[alt="nome"] { top: 4.3rem !important; }
   input[placeholder="Email"] { top: 3.5rem !important; }
-  input[placeholder="Senha"] { top: 2.7rem !important; left: 4rem !important; }
+  select { top: 2.7rem !important; }
+  input[placeholder="Senha"] { top: 1.9rem !important; left: 4rem !important; }
+  
   .relative.w-72.mx-auto button { position: absolute !important; right: 5rem !important; top: 50% !important; transform: translateY(-50%) !important; width: auto !important; height: auto !important; }
   svg { width: 1.2rem !important; height: 1.2rem !important; position: relative; top: 3.2rem !important; }
   div[alt="links"] { font-size: 0.8rem !important; position: relative; top: 1.2rem !important; }
-  button[alt="cadastrar"] { position: relative; top: 2.3rem !important; width: 17rem !important; height: 2.5rem !important; font-size: 15px !important; }
+  button[alt="cadastrar"] { position: relative; top: 1.5rem !important; width: 17rem !important; height: 2.5rem !important; font-size: 15px !important; }
   img[alt="anjosDigitais"] { width: 9% !important; position: relative; bottom: 15rem !important; left: 0rem !important; }
 }
 
