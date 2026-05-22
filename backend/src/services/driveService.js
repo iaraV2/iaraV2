@@ -4,13 +4,59 @@ import { google } from 'googleapis';
 import 'dotenv/config';
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import path from 'path';
+import { Readable } from 'stream';
 
-const auth = new google.auth.GoogleAuth({
-  keyFile: './chaveJsonFirebaseFirestore.json',
-  scopes: ['https://www.googleapis.com/auth/drive.readonly'],
-});
+// Configuração OAuth2 (Substituindo Service Account por OAuth2 para usar cota pessoal)
+const oauth2Client = new google.auth.OAuth2(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET,
+  'http://localhost' // Redirect URI configurada no Console
+);
 
-const drive = google.drive({ version: 'v3', auth });
+// Carregar o Refresh Token das variáveis de ambiente
+if (process.env.GOOGLE_REFRESH_TOKEN) {
+  oauth2Client.setCredentials({
+    refresh_token: process.env.GOOGLE_REFRESH_TOKEN
+  });
+}
+
+const drive = google.drive({ version: 'v3', auth: oauth2Client });
+
+//! Realiza o upload de um arquivo PDF para uma pasta específica do Google Drive
+export const uploadArquivoParaDrive = async (buffer, nomeArquivo, folderId) => {
+  try {
+    if (!process.env.GOOGLE_REFRESH_TOKEN) {
+      console.warn("⚠️ [DriveService] GOOGLE_REFRESH_TOKEN não configurado. Upload ignorado.");
+      return null;
+    }
+
+    console.log(`📤 [DriveService] Tentando upload OAuth2: "${nomeArquivo}"`);
+
+    const stream = new Readable();
+    stream.push(buffer);
+    stream.push(null);
+
+    const response = await drive.files.create({
+      requestBody: {
+        name: nomeArquivo,
+        parents: [folderId],
+      },
+      media: {
+        mimeType: 'application/pdf',
+        body: stream,
+      },
+      fields: 'id',
+      supportsAllDrives: true,
+    });
+
+    console.log(`✅ [DriveService] Sucesso! Arquivo ID: ${response.data.id}`);
+    return response.data.id;
+  } catch (error) {
+    console.error("❌ [DriveService] ERRO NO UPLOAD OAUTH2:");
+    console.error(`   Mensagem: ${error.message}`);
+    return null;
+  }
+};
 
 
 //! Lista todos os PDFs dentro de uma pasta do Google Drive pelo folderId

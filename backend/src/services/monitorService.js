@@ -11,15 +11,15 @@
 //
 // INTERVALO:
 //   Configurável via .env com MONITOR_INTERVALO_MINUTOS.
-//   Padrão: 60 minutos (não sobrecarrega a cota do Gemini).
+//   Padrão: 5 minutos (ajustado para resposta rápida da IAra).
 
 import { listarArquivosDaPasta, extrairTextoDoDrive } from './driveService.js';
 import { salvarDocumentoNoPinecone } from './ragServices.js';
 import { jaFoiProcessado, marcarComoProcessado } from '../models/monitorModel.js';
 import 'dotenv/config';
 
-// Intervalo em milissegundos (padrão: 60 minutos)
-const INTERVALO_MS = (parseInt(process.env.MONITOR_INTERVALO_MINUTOS) || 60) * 60 * 1000;
+// Intervalo em milissegundos (padrão: 5 minutos)
+const INTERVALO_MS = (parseInt(process.env.MONITOR_INTERVALO_MINUTOS) || 5) * 60 * 1000;
 
 // ID da pasta monitorada — obrigatório no .env
 const FOLDER_ID = process.env.DRIVE_FOLDER_ID;

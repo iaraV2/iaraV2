@@ -1,44 +1,94 @@
-
 import { db } from '../config/firebase.js';
 import { admin } from '../config/firebase.js';
 
 const COLECAO = 'turmas';
+const BATCH_SIZE = 100;
 
+async function esvaziarColecao(ref) {
+    let snap = await ref.limit(BATCH_SIZE).get();
+    while (!snap.empty) {
+        const batch = db.batch();
+        snap.docs.forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
+        snap = await ref.limit(BATCH_SIZE).get();
+    }
+}
+
+async function deletarPdfsDoConteudo(turmaId, conteudoId) {
+    await esvaziarColecao(
+        db.collection(COLECAO).doc(turmaId)
+            .collection('conteudos').doc(conteudoId)
+            .collection('pdfs')
+    );
+}
+
+async function deletarTodosConteudos(turmaId) {
+    const conteudosSnap = await db.collection(COLECAO).doc(turmaId)
+        .collection('conteudos').get();
+    for (const doc of conteudosSnap.docs) {
+        await deletarPdfsDoConteudo(turmaId, doc.id);
+        await doc.ref.delete();
+    }
+}
+
+async function deletarTodosAlunos(turmaId) {
+    const alunosSnap = await db.collection(COLECAO).doc(turmaId)
+        .collection('alunos').get();
+    for (const doc of alunosSnap.docs) {
+        await db.collection('usuarios').doc(doc.id)
+            .collection('turmasMatriculadas').doc(turmaId).delete()
+            .catch(() => {});
+        await doc.ref.delete();
+    }
+}
 
 // ─── TURMAS ───────────────────────────────────────────────────────────────────
 
-//! Cria uma nova turma
 export const criarTurma = async (dados) => {
     const ref = await db.collection(COLECAO).add({
-        nome:        dados.nome,
-        descricao:   dados.descricao || null,
-        professorId: dados.professorId,
-        codigo:      dados.codigo,          // ex: "IARA-4F2A"
-        ativa:       true,
-        criadaEm:    admin.firestore.FieldValue.serverTimestamp(),
+        nome:            dados.nome,
+        nome_procuravel: dados.nome.toLowerCase(), // 🔥 Adicionado para permitir busca case-insensitive
+        descricao:       dados.descricao || null,
+        professorId:     dados.professorId,
+        codigo:          dados.codigo,
+        cor:             dados.cor || '#FFD700',
+        icone:           dados.icone || '🌻',
+        nivel:           dados.nivel || 'Iniciante',
+        progresso:       dados.progresso ?? 0,
+        ativa:           true,
+        criadaEm:        admin.firestore.FieldValue.serverTimestamp(),
     });
     return ref.id;
 };
 
-//! Busca turma pelo ID
 export const buscarTurmaPorId = async (turmaId) => {
     const doc = await db.collection(COLECAO).doc(turmaId).get();
     if (!doc.exists) return null;
     return { id: doc.id, ...doc.data() };
 };
 
-//! Busca turma pelo código de convite (case-insensitive via upper)
 export const buscarTurmaPorCodigo = async (codigo) => {
     const snap = await db.collection(COLECAO)
         .where('codigo', '==', codigo.toUpperCase())
-        .where('ativa', '==', true)
         .get();
     if (snap.empty) return null;
     const doc = snap.docs[0];
-    return { id: doc.id, ...doc.data() };
+    const turma = { id: doc.id, ...doc.data() };
+    // Filtra por turma ativa no código após a busca
+    return turma.ativa !== false ? turma : null;
 };
+export const buscarTurmasPorTitulo = async (termo) => {
+    const termoMinusculo = termo.toLowerCase();
+    const snap = await db.collection(COLECAO)
+        .where('nome_procuravel', '>=', termoMinusculo)
+        .where('nome_procuravel', '<=', termoMinusculo + '\uf8ff')
+        .get();
 
-//! Lista todas as turmas de um professor
+    // Filtra por turmas ativas no código após a busca
+    return snap.docs
+        .map(doc => ({ id: doc.id, ...doc.data() }))
+        .filter(turma => turma.ativa !== false);
+};
 export const listarTurmasDoProfessor = async (professorId) => {
     const snap = await db.collection(COLECAO)
         .where('professorId', '==', professorId)
@@ -47,22 +97,20 @@ export const listarTurmasDoProfessor = async (professorId) => {
     return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 };
 
-//! Atualiza dados da turma (nome, descrição, código)
 export const atualizarTurma = async (turmaId, dados) => {
     await db.collection(COLECAO).doc(turmaId).update(dados);
     return { message: 'Turma atualizada com sucesso.' };
 };
 
-//! Deleta turma
 export const deletarTurma = async (turmaId) => {
+    await deletarTodosConteudos(turmaId);
+    await deletarTodosAlunos(turmaId);
     await db.collection(COLECAO).doc(turmaId).delete();
-    return { message: 'Turma deletada.' };
+    return { message: 'Turma e aulas vinculadas removidas.' };
 };
-
 
 // ─── ALUNOS DA TURMA ─────────────────────────────────────────────────────────
 
-//! Vincula aluno à turma (subcoleção turmas/{id}/alunos)
 export const adicionarAlunoNaTurma = async (turmaId, alunoId) => {
     const dadosMatricula = {
         alunoId,
@@ -70,12 +118,8 @@ export const adicionarAlunoNaTurma = async (turmaId, alunoId) => {
         progressoPct: 0,
         liberado:     false,
     };
-
-    // Salva na subcoleção da turma
     await db.collection(COLECAO).doc(turmaId)
         .collection('alunos').doc(alunoId).set(dadosMatricula);
-
-    // Salva também no documento do aluno para consulta rápida sem collectionGroup
     await db.collection('usuarios').doc(alunoId)
         .collection('turmasMatriculadas').doc(turmaId).set({
             turmaId,
@@ -83,7 +127,6 @@ export const adicionarAlunoNaTurma = async (turmaId, alunoId) => {
         });
 };
 
-//! Busca o vínculo aluno-turma
 export const buscarAlunoNaTurma = async (turmaId, alunoId) => {
     const doc = await db.collection(COLECAO).doc(turmaId)
         .collection('alunos').doc(alunoId).get();
@@ -91,21 +134,16 @@ export const buscarAlunoNaTurma = async (turmaId, alunoId) => {
     return doc.data();
 };
 
-//! Lista todos os alunos de uma turma
 export const listarAlunosDaTurma = async (turmaId) => {
     const snap = await db.collection(COLECAO).doc(turmaId)
         .collection('alunos').orderBy('entradoEm', 'asc').get();
     return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 };
 
-//! Lista todas as turmas em que um aluno está matriculado
 export const listarTurmasDoAluno = async (alunoId) => {
-    // CollectionGroup query: busca em TODAS as subcoleções "alunos" do Firestore
     const snap = await db.collectionGroup('alunos')
         .where('alunoId', '==', alunoId)
         .get();
-
-    // Para cada vínculo, busca os dados da turma pai
     const turmas = await Promise.all(
         snap.docs.map(async (doc) => {
             const turmaId  = doc.ref.parent.parent.id;
@@ -116,71 +154,119 @@ export const listarTurmasDoAluno = async (alunoId) => {
     return turmas;
 };
 
-//! Atualiza o progresso do aluno em uma turma (0-100)
 export const atualizarProgressoAluno = async (turmaId, alunoId, progressoPct) => {
     await db.collection(COLECAO).doc(turmaId)
         .collection('alunos').doc(alunoId)
         .update({ progressoPct });
 };
 
-//! Professor libera aluno para próxima turma
 export const liberarAlunoParaProximaTurma = async (turmaId, alunoId) => {
     await db.collection(COLECAO).doc(turmaId)
         .collection('alunos').doc(alunoId)
         .update({ liberado: true });
 };
 
-//! Remove aluno da turma
 export const removerAlunoNaTurma = async (turmaId, alunoId) => {
-    // Remove da subcoleção da turma
     await db.collection(COLECAO).doc(turmaId)
         .collection('alunos').doc(alunoId).delete();
-
-    // Remove também do turmasMatriculadas do aluno
     await db.collection('usuarios').doc(alunoId)
         .collection('turmasMatriculadas').doc(turmaId).delete();
 };
 
-
 // ─── CONTEÚDOS DA TURMA ───────────────────────────────────────────────────────
 
-//! Adiciona conteúdo (título + link externo)
 export const adicionarConteudo = async (turmaId, dados) => {
     const ref = await db.collection(COLECAO).doc(turmaId)
         .collection('conteudos').add({
-            titulo:    dados.titulo,
-            descricao: dados.descricao || null,
-            link:      dados.link,           // URL externa (YouTube, Drive, etc.)
-            ordem:     dados.ordem || 0,     // para ordenar os conteúdos na tela
-            criadoEm:  admin.firestore.FieldValue.serverTimestamp(),
+            titulo:          dados.titulo,
+            descricao:       dados.descricao || null,
+            link:            dados.link,
+            ordem:           dados.ordem ?? 0,
+            topicos:         dados.topicos || [],
+            pdfs:            dados.pdfs || [],
+            liberado:        dados.liberado ?? true,
+            dataLancamento:  dados.dataLancamento || null,
+            criadoEm:        admin.firestore.FieldValue.serverTimestamp(),
         });
     return ref.id;
 };
 
-//! Lista todos os conteúdos de uma turma, ordenados
 export const listarConteudos = async (turmaId) => {
     const snap = await db.collection(COLECAO).doc(turmaId)
         .collection('conteudos').orderBy('ordem', 'asc').get();
     return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 };
 
-//! Atualiza um conteúdo
 export const atualizarConteudo = async (turmaId, conteudoId, dados) => {
     await db.collection(COLECAO).doc(turmaId)
         .collection('conteudos').doc(conteudoId).update(dados);
     return { message: 'Conteúdo atualizado.' };
 };
 
-//! Remove um conteúdo
 export const deletarConteudo = async (turmaId, conteudoId) => {
+    await deletarPdfsDoConteudo(turmaId, conteudoId);
     await db.collection(COLECAO).doc(turmaId)
         .collection('conteudos').doc(conteudoId).delete();
     return { message: 'Conteúdo removido.' };
 };
 
-//! Verifica rápida se aluno tem alguma turma (sem collectionGroup)
 export const alunoTemTurmasMatriculadas = async (alunoId) => {
     const snap = await db.collection('usuarios').doc(alunoId)
         .collection('turmasMatriculadas').limit(1).get();
     return !snap.empty;
+};
+
+// ─── PDFs DO CONTEÚDO ─────────────────────────────────────────────────────────
+
+export const salvarPdf = async (turmaId, conteudoId, dados) => {
+    const conteudoDoc = await db.collection(COLECAO).doc(turmaId)
+        .collection('conteudos').doc(conteudoId).get();
+    if (!conteudoDoc.exists) {
+        throw new Error('Aula (conteúdo) não encontrada para vincular o PDF.');
+    }
+
+    const payload = {
+        nome:     dados.nome,
+        base64:   dados.base64,
+        tamanho:  dados.tamanho,
+        criadoEm: admin.firestore.FieldValue.serverTimestamp(),
+    };
+
+    try {
+        const ref = await db.collection(COLECAO).doc(turmaId)
+            .collection('conteudos').doc(conteudoId)
+            .collection('pdfs').add(payload);
+        return ref.id;
+    } catch (err) {
+        if (err.code === 3 || /longer than|bytes/i.test(err.message || '')) {
+            throw new Error('PDF excede o limite do banco de dados. Use arquivos de até 700KB.');
+        }
+        throw err;
+    }
+};
+
+export const listarPdfs = async (turmaId, conteudoId) => {
+    const snap = await db.collection(COLECAO).doc(turmaId)
+        .collection('conteudos').doc(conteudoId)
+        .collection('pdfs').orderBy('criadoEm', 'asc').get();
+    return snap.docs.map(doc => ({
+        id:      doc.id,
+        nome:    doc.data().nome,
+        tamanho: doc.data().tamanho,
+    }));
+};
+
+export const buscarPdfCompleto = async (turmaId, conteudoId, pdfId) => {
+    const doc = await db.collection(COLECAO).doc(turmaId)
+        .collection('conteudos').doc(conteudoId)
+        .collection('pdfs').doc(pdfId).get();
+    if (!doc.exists) return null;
+    return { id: doc.id, ...doc.data() };
+};
+
+export const deletarPdf = async (turmaId, conteudoId, pdfId) => {
+    await db.collection(COLECAO).doc(turmaId)
+        .collection('conteudos').doc(conteudoId)
+        .collection('pdfs').doc(pdfId).delete();
+    return { message: 'PDF removido.' };
 };

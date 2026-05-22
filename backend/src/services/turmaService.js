@@ -1,13 +1,15 @@
 // src/services/turmaService.js
 
 import {
-    criarTurma, buscarTurmaPorId, buscarTurmaPorCodigo,
+    criarTurma, buscarTurmaPorId, buscarTurmaPorCodigo, buscarTurmasPorTitulo,
     listarTurmasDoProfessor, atualizarTurma, deletarTurma,
     adicionarAlunoNaTurma, buscarAlunoNaTurma, listarAlunosDaTurma,
     listarTurmasDoAluno, atualizarProgressoAluno,
     liberarAlunoParaProximaTurma, removerAlunoNaTurma,
     adicionarConteudo, listarConteudos, atualizarConteudo, deletarConteudo,
+    salvarPdf, listarPdfs, buscarPdfCompleto, deletarPdf,
 } from '../models/turmaModel.js';
+import { uploadArquivoParaDrive } from './driveService.js';
 import crypto from 'crypto';
 
 
@@ -21,19 +23,40 @@ function gerarCodigo() {
 
 //! Cria turma — só professor pode chamar (verificado no middleware de role)
 export const criarTurmaService = async (professorId, dados) => {
-    const { nome, descricao } = dados;
+    const { nome, descricao, codigo: codigoEnviado, cor, icone, nivel } = dados;
     if (!nome || nome.trim().length < 3) {
         throw new Error('O nome da turma deve ter pelo menos 3 caracteres.');
     }
 
-    const codigo = gerarCodigo();
+    let codigo = codigoEnviado?.trim()
+        ? codigoEnviado.toUpperCase()
+        : gerarCodigo();
 
-    const turmaId = await criarTurma({ nome: nome.trim(), descricao, professorId, codigo });
+    if (codigo.length < 4 || codigo.length > 20) {
+        throw new Error('O código deve ter entre 4 e 20 caracteres.');
+    }
+    const existente = await buscarTurmaPorCodigo(codigo);
+    if (existente) throw new Error('Este código já está em uso. Gere outro código.');
+
+    const turmaId = await criarTurma({
+        nome: nome.trim(),
+        descricao,
+        professorId,
+        codigo,
+        cor: cor || '#FFD700',
+        icone: icone || '🌻',
+        nivel: nivel || 'Iniciante',
+        progresso: 0,
+    });
 
     return {
-        id:      turmaId,
-        nome,
+        id: turmaId,
+        nome: nome.trim(),
         codigo,
+        cor: cor || '#FFD700',
+        icone: icone || '🌻',
+        nivel: nivel || 'Iniciante',
+        progresso: 0,
         mensagem: `Turma criada! Código de convite: ${codigo}`,
     };
 };
@@ -52,6 +75,10 @@ export const editarTurmaService = async (professorId, turmaId, dados) => {
     }
 
     if (dados.descricao !== undefined) atualizacao.descricao = dados.descricao;
+    if (dados.cor !== undefined) atualizacao.cor = dados.cor;
+    if (dados.icone !== undefined) atualizacao.icone = dados.icone;
+    if (dados.nivel !== undefined) atualizacao.nivel = dados.nivel;
+    if (dados.progresso !== undefined) atualizacao.progresso = dados.progresso;
 
     if (dados.codigo) {
         // Professor pode definir um código personalizado (ex: "IARA-TURMA1")
@@ -90,8 +117,8 @@ export const deletarTurmaService = async (professorId, turmaId) => {
 // ─── ENTRADA DO ALUNO NA TURMA ────────────────────────────────────────────────
 
 //! Aluno entra na turma pelo código
-//  Regra: pode entrar em múltiplas turmas, MAS só se o professor tiver liberado
-//  (campo "liberado: true" na turma anterior) OU se for sua primeira turma.
+//  Regra: aluno pode entrar em qualquer turma digitando o código.
+//  O código é solicitado apenas uma vez (controlado no frontend via localStorage).
 export const entrarNaTurmaService = async (alunoId, codigo) => {
     // 1. Encontra a turma pelo código
     const turma = await buscarTurmaPorCodigo(codigo);
@@ -101,34 +128,7 @@ export const entrarNaTurmaService = async (alunoId, codigo) => {
     const vinculoExistente = await buscarAlunoNaTurma(turma.id, alunoId);
     if (vinculoExistente) throw new Error('Você já está matriculado nesta turma.');
 
-    // 3. Verifica a regra de progressão sem collectionGroup
-    const { db } = await import('../config/firebase.js');
-    const snapTurmas = await db.collection('usuarios').doc(alunoId)
-        .collection('turmasMatriculadas').limit(1).get();
-
-    if (!snapTurmas.empty) {
-        const turmasMatSnap = await db.collection('usuarios').doc(alunoId)
-            .collection('turmasMatriculadas').get();
-
-        let temLiberacao = false;
-        for (const turmaDoc of turmasMatSnap.docs) {
-            const tid = turmaDoc.id;
-            const alunoNaTurma = await buscarAlunoNaTurma(tid, alunoId);
-            if (alunoNaTurma?.liberado === true) {
-                temLiberacao = true;
-                break;
-            }
-        }
-
-        if (!temLiberacao) {
-            throw new Error(
-                'Para entrar em uma nova turma, você precisa completar pelo menos 80% do conteúdo ' +
-                'de uma turma atual e ser liberado pelo professor.'
-            );
-        }
-    }
-
-    // 4. Matricula o aluno
+    // 3. Matricula o aluno (sem restrição de progressão)
     await adicionarAlunoNaTurma(turma.id, alunoId);
 
     return {
@@ -141,6 +141,31 @@ export const entrarNaTurmaService = async (alunoId, codigo) => {
 //! Lista todas as turmas em que o aluno está matriculado
 export const listarTurmasAlunoService = async (alunoId) => {
     return await listarTurmasDoAluno(alunoId);
+};
+
+//! Busca turma por código (pública para alunos poderem buscar antes de entrar)
+export const buscarTurmaPorCodigoPublicoService = async (codigo) => {
+    const turma = await buscarTurmaPorCodigo(codigo);
+    if (!turma) throw new Error('Turma não encontrada com este código.');
+    return turma;
+};
+
+//! Busca turmas por título (pública para alunos poderem buscar antes de entrar)
+export const buscarTurmasPorTituloPublicoService = async (titulo) => {
+    if (!titulo || titulo.length < 2) {
+        return [];
+    }
+    const turmas = await buscarTurmasPorTitulo(titulo);
+    return turmas;
+};
+
+//! Lista todas as turmas públicas (ativas) para alunos
+export const listarTodasTurmasPublicasService = async () => {
+    const { db } = await import('../config/firebase.js');
+    const snap = await db.collection('turmas').get();
+    const turmas = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    // Filtra por turmas ativas no código após a busca
+    return turmas.filter(t => t.ativa !== false);
 };
 
 //! Verifica se o aluno está em pelo menos uma turma ativa (usado pelo middleware)
@@ -211,11 +236,20 @@ export const adicionarConteudoService = async (professorId, turmaId, dados) => {
     if (!turma) throw new Error('Turma não encontrada.');
     if (turma.professorId !== professorId) throw new Error('Sem permissão.');
 
-    const { titulo, descricao, link, ordem } = dados;
+    const { titulo, descricao, link, ordem, topicos, pdfs, liberado, dataLancamento } = dados;
     if (!titulo || titulo.trim().length < 2) throw new Error('Título obrigatório.');
     if (!link || !link.startsWith('http')) throw new Error('Link externo inválido.');
 
-    const id = await adicionarConteudo(turmaId, { titulo: titulo.trim(), descricao, link, ordem });
+    const id = await adicionarConteudo(turmaId, {
+        titulo: titulo.trim(),
+        descricao,
+        link,
+        ordem,
+        topicos: topicos || [],
+        pdfs: pdfs || [],
+        liberado: liberado ?? true,
+        dataLancamento: dataLancamento || null,
+    });
     return { id, mensagem: 'Conteúdo adicionado com sucesso!' };
 };
 
@@ -228,10 +262,13 @@ export const listarConteudosService = async (turmaId, usuarioId, role) => {
         if (turma.professorId !== usuarioId) throw new Error('Sem permissão.');
     }
 
-    // Aluno: precisa estar matriculado na turma
+    // Aluno: pode acessar conteúdos de qualquer turma pública (sem necessidade de matrícula)
+    // A verificação de matrícula foi removida para permitir acesso a todas as turmas criadas por professores
     if (role === 'aluno') {
-        const vinculo = await buscarAlunoNaTurma(turmaId, usuarioId);
-        if (!vinculo) throw new Error('Você não está matriculado nesta turma.');
+        const turma = await buscarTurmaPorId(turmaId);
+        if (!turma) throw new Error('Turma não encontrada.');
+        // Verifica apenas se a turma está ativa
+        if (turma.ativa === false) throw new Error('Turma inativa.');
     }
 
     return await listarConteudos(turmaId);
@@ -244,10 +281,14 @@ export const editarConteudoService = async (professorId, turmaId, conteudoId, da
     if (turma.professorId !== professorId) throw new Error('Sem permissão.');
 
     const atualizacao = {};
-    if (dados.titulo)     atualizacao.titulo     = dados.titulo.trim();
-    if (dados.descricao !== undefined) atualizacao.descricao = dados.descricao;
-    if (dados.link)       atualizacao.link        = dados.link;
-    if (dados.ordem !== undefined) atualizacao.ordem = dados.ordem;
+    if (dados.titulo)                  atualizacao.titulo          = dados.titulo.trim();
+    if (dados.descricao !== undefined) atualizacao.descricao       = dados.descricao;
+    if (dados.link)                    atualizacao.link            = dados.link;
+    if (dados.ordem !== undefined)     atualizacao.ordem           = dados.ordem;
+    if (dados.topicos !== undefined)   atualizacao.topicos         = dados.topicos;
+    if (dados.pdfs !== undefined)      atualizacao.pdfs            = dados.pdfs;
+    if (dados.liberado !== undefined)  atualizacao.liberado        = dados.liberado;
+    if (dados.dataLancamento !== undefined) atualizacao.dataLancamento = dados.dataLancamento;
 
     if (!Object.keys(atualizacao).length) throw new Error('Nada para atualizar.');
     return await atualizarConteudo(turmaId, conteudoId, atualizacao);
@@ -259,4 +300,64 @@ export const deletarConteudoService = async (professorId, turmaId, conteudoId) =
     if (!turma) throw new Error('Turma não encontrada.');
     if (turma.professorId !== professorId) throw new Error('Sem permissão.');
     return await deletarConteudo(turmaId, conteudoId);
+};
+
+// ─── PDFs ─────────────────────────────────────────────────────────────────────
+
+const MAX_PDF_BYTES = 700 * 1024;
+
+export const uploadPdfService = async (professorId, turmaId, conteudoId, arquivo) => {
+    const turma = await buscarTurmaPorId(turmaId);
+    if (!turma) throw new Error('Turma não encontrada.');
+    if (turma.professorId !== professorId) throw new Error('Sem permissão.');
+    if (!arquivo) throw new Error('Nenhum arquivo enviado.');
+    if (!arquivo.buffer?.length) throw new Error('Arquivo corrompido ou vazio.');
+    if (arquivo.mimetype !== 'application/pdf') throw new Error('Formato inválido. Envie apenas PDF.');
+    const nomeArq = (arquivo.originalname || '').toLowerCase();
+    if (!nomeArq.endsWith('.pdf')) throw new Error('A extensão do arquivo deve ser .pdf');
+    if (arquivo.size > MAX_PDF_BYTES) throw new Error('PDF muito grande. Máximo permitido: 700KB.');
+
+    const base64 = arquivo.buffer.toString('base64');
+    const tamanhoEstimadoDoc = Math.ceil(base64.length * 1.05) + 500;
+    if (tamanhoEstimadoDoc > 1_048_576) {
+        throw new Error('PDF excede o limite do banco de dados. Use arquivos menores (até 700KB).');
+    }
+
+    const id = await salvarPdf(turmaId, conteudoId, {
+        nome: arquivo.originalname,
+        base64,
+        tamanho: arquivo.size,
+    });
+
+    // --- INTEGRAÇÃO GOOGLE DRIVE ---
+    // Copia o arquivo para o Google Drive para que a IAra possa processar
+    const folderId = process.env.DRIVE_FOLDER_ID || '108BCKchtHnFuVZKFXUjlDZi6fVxs_5oD';
+    
+    try {
+        const driveFileId = await uploadArquivoParaDrive(arquivo.buffer, arquivo.originalname, folderId);
+        if (driveFileId) {
+            console.log(`📂 [SYNC] PDF "${arquivo.originalname}" sincronizado com Drive. ID: ${driveFileId}`);
+        } else {
+            console.warn(`⚠️ [SYNC] Falha ao sincronizar "${arquivo.originalname}" com Drive (ID não retornado).`);
+        }
+    } catch (err) {
+        console.error(`❌ [SYNC] Erro crítico na sincronização com Drive para "${arquivo.originalname}":`, err);
+    }
+
+    return { id, nome: arquivo.originalname, tamanho: arquivo.size, mensagem: 'PDF enviado com sucesso!' };
+};
+
+export const listarPdfsService = async (turmaId, conteudoId) => {
+    return await listarPdfs(turmaId, conteudoId);
+};
+
+export const baixarPdfService = async (turmaId, conteudoId, pdfId) => {
+    return await buscarPdfCompleto(turmaId, conteudoId, pdfId);
+};
+
+export const deletarPdfService = async (professorId, turmaId, conteudoId, pdfId) => {
+    const turma = await buscarTurmaPorId(turmaId);
+    if (!turma) throw new Error('Turma não encontrada.');
+    if (turma.professorId !== professorId) throw new Error('Sem permissão.');
+    return await deletarPdf(turmaId, conteudoId, pdfId);
 };

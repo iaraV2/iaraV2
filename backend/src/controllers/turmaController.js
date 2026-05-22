@@ -2,9 +2,11 @@
 
 import {
     criarTurmaService, editarTurmaService, listarTurmasProfessorService, deletarTurmaService,
-    entrarNaTurmaService, listarTurmasAlunoService,
+    entrarNaTurmaService, listarTurmasAlunoService, buscarTurmaPorCodigoPublicoService,
+    buscarTurmasPorTituloPublicoService, listarTodasTurmasPublicasService,
     atualizarProgressoService, liberarAlunoService, listarAlunosService, removerAlunoService,
     adicionarConteudoService, listarConteudosService, editarConteudoService, deletarConteudoService,
+    uploadPdfService, listarPdfsService, baixarPdfService, deletarPdfService,
 } from '../services/turmaService.js';
 
 
@@ -69,6 +71,40 @@ export const entrarNaTurmaController = async (req, res) => {
 export const listarTurmasAlunoController = async (req, res) => {
     try {
         const turmas = await listarTurmasAlunoService(req.userId);
+        res.status(200).json(turmas);
+    } catch (error) {
+        res.status(500).json({ erro: error.message });
+    }
+};
+
+//! Busca turma por código (pública para alunos)
+export const buscarTurmaPorCodigoController = async (req, res) => {
+    try {
+        const { codigo } = req.params;
+        if (!codigo) return res.status(400).json({ erro: 'Código é obrigatório.' });
+        const turma = await buscarTurmaPorCodigoPublicoService(codigo.toUpperCase());
+        res.status(200).json(turma);
+    } catch (error) {
+        res.status(404).json({ erro: error.message });
+    }
+};
+
+//! Busca turmas por título (pública para alunos)
+export const buscarTurmasPorTituloController = async (req, res) => {
+    try {
+        const { titulo } = req.params;
+        if (!titulo) return res.status(400).json({ erro: 'Título é obrigatório.' });
+        const turmas = await buscarTurmasPorTituloPublicoService(titulo);
+        res.status(200).json(turmas);
+    } catch (error) {
+        res.status(500).json({ erro: error.message });
+    }
+};
+
+//! Lista todas as turmas públicas (ativas) para alunos
+export const listarTodasTurmasPublicasController = async (req, res) => {
+    try {
+        const turmas = await listarTodasTurmasPublicasService();
         res.status(200).json(turmas);
     } catch (error) {
         res.status(500).json({ erro: error.message });
@@ -169,6 +205,58 @@ export const deletarConteudoController = async (req, res) => {
     try {
         const { turmaId, conteudoId } = req.params;
         const resultado = await deletarConteudoService(req.userId, turmaId, conteudoId);
+        res.status(200).json(resultado);
+    } catch (error) {
+        res.status(400).json({ erro: error.message });
+    }
+};
+
+// ─── PDFs ─────────────────────────────────────────────────────────────────────
+
+export const uploadPdfController = async (req, res) => {
+    try {
+        const { turmaId, conteudoId } = req.params;
+        if (!turmaId || !conteudoId) {
+            return res.status(400).json({ erro: 'turmaId e conteudoId são obrigatórios.' });
+        }
+        if (!req.file) {
+            return res.status(400).json({ erro: 'Nenhum arquivo foi anexado. Use o campo "pdf".' });
+        }
+        const resultado = await uploadPdfService(req.userId, turmaId, conteudoId, req.file);
+        res.status(201).json(resultado);
+    } catch (error) {
+        res.status(400).json({ erro: error.message });
+    }
+};
+
+export const listarPdfsController = async (req, res) => {
+    try {
+        const { turmaId, conteudoId } = req.params;
+        const pdfs = await listarPdfsService(turmaId, conteudoId);
+        res.status(200).json(pdfs);
+    } catch (error) {
+        res.status(400).json({ erro: error.message });
+    }
+};
+
+export const baixarPdfController = async (req, res) => {
+    try {
+        const { turmaId, conteudoId, pdfId } = req.params;
+        const pdf = await baixarPdfService(turmaId, conteudoId, pdfId);
+        if (!pdf) return res.status(404).json({ erro: 'PDF não encontrado.' });
+        const buffer = Buffer.from(pdf.base64, 'base64');
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${pdf.nome}"`);
+        res.send(buffer);
+    } catch (error) {
+        res.status(400).json({ erro: error.message });
+    }
+};
+
+export const deletarPdfController = async (req, res) => {
+    try {
+        const { turmaId, conteudoId, pdfId } = req.params;
+        const resultado = await deletarPdfService(req.userId, turmaId, conteudoId, pdfId);
         res.status(200).json(resultado);
     } catch (error) {
         res.status(400).json({ erro: error.message });
