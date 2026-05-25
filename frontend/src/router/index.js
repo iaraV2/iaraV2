@@ -1,7 +1,10 @@
+// frontend/src/router/index.js
+// CORREÇÃO: rota /admin/dashboard agora verifica role além de autenticação
+
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stores/auth.js'
 
-const routes = [ 
+const routes = [
   {
     path: '/',
     name: 'Inicio',
@@ -46,12 +49,12 @@ const routes = [
     meta: { requerAuth: false },
   },
   {
-  path: '/aula/:id/:titulo/:nivel/:progresso/:videoId',
-  name: 'Aula',
-  component: () => import('../views/sala_de_aula/Aula.vue'),
-  props: true, // Isso permite que os parâmetros virem variáveis automáticas
-  meta: { requerAuth: false },
-},
+    path: '/aula/:id/:titulo/:nivel/:progresso/:videoId',
+    name: 'Aula',
+    component: () => import('../views/sala_de_aula/Aula.vue'),
+    props: true,
+    meta: { requerAuth: false },
+  },
   {
     path: '/favoritos',
     name: 'Favoritos',
@@ -70,14 +73,26 @@ const routes = [
     component: () => import('../views/chat/Chat.vue'),
     meta: { requerAuth: false },
   },
+
+  // ── Painel Admin ──────────────────────────────────────────────────────────
+  {
+    path: '/admin/dashboard',
+    name: 'AdminDashboard',
+    component: () => import('../views/admin/AdminDashboard.vue'),
+    meta: {
+      requerAuth: true,
+      requerRole: 'admin',   // ← nova propriedade: só role 'admin' entra
+    },
+  },
+
   {
     path: '/:pathMatch(.*)*',
-    redirect: '/'
-  }
+    redirect: '/',
+  },
 ]
 
 const router = createRouter({
-  history: createWebHistory(), 
+  history: createWebHistory(),
   routes,
   scrollBehavior: () => ({ top: 0 }),
 })
@@ -87,11 +102,26 @@ router.beforeEach((to, _from, next) => {
 
   const precisaDeAuth    = to.meta.requerAuth === true
   const somenteDeslogado = to.meta.somenteDeslogado === true
+  const roleNecessaria   = to.meta.requerRole
 
+  // 1. Rota privada sem sessão → Login
   if (precisaDeAuth && !auth.estaAutenticado) {
     return next({ name: 'Login', query: { redirect: to.fullPath } })
   }
 
+  // 2. Rota com role específica → verifica role do token
+  //    Lê direto do token decodificado para não depender de chamada extra ao backend
+  if (roleNecessaria && auth.estaAutenticado) {
+    const roleDoUsuario = auth.usuario?.role
+
+    if (roleDoUsuario !== roleNecessaria) {
+      // Aluno/professor que tentou acessar /admin/dashboard → vai para o menu deles
+      console.warn(`[Router] Acesso negado à rota ${to.path}: role "${roleDoUsuario}" não tem permissão.`)
+      return next({ name: 'Menu' })
+    }
+  }
+
+  // 3. Rota só para deslogados (login, cadastro) com sessão ativa → Menu
   if (somenteDeslogado && auth.estaAutenticado) {
     return next({ name: 'Menu' })
   }

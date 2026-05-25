@@ -1,5 +1,6 @@
 ./backend/env
 .chaveJsonFirebaseFirestore
+.chave-google-drive
 .nginx.conf
 .env
 node_modules/
@@ -7,6 +8,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 chaveJsonFirebaseFirestore.json
+chave-google-drive.json
 
 .DS_Store
 Thumbs.db
