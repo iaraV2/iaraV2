@@ -1,0 +1,39 @@
+services:
+  backend:
+    build:
+      context: ./backend  
+      dockerfile: Dockerfile
+    container_name: iara-backend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      # Atualizado para o diretório de trabalho do container (/app)
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/chaveJsonFirebaseFirestore.json
+      - PINECONE_API_KEY=${PINECONE_API_KEY}
+      - PINECONE_INDEX=${PINECONE_INDEX}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+    env_file:
+      - ./backend/.env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - iara-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: iara-frontend
+    restart: always
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    networks:
+      - iara-network
+
+networks:
+  iara-network:
+    driver: bridge

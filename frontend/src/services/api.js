@@ -14,7 +14,7 @@ import axios from 'axios'
 
 
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000/api',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000/iara',
   timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
@@ -55,18 +55,15 @@ api.interceptors.response.use(
   (error) => {
     const status = error.response?.status
 
-    if (status === 401) {//? se o token expirou ou é inválido, o backend retorna 401. Nesse caso, limpamos os dados de autenticação e redireciona para a tela de login.
+    if (status === 401) {
       console.warn('[IAra] Sessão expirada ou inválida. Redirecionando para login.')
       localStorage.removeItem('iara_token')
       localStorage.removeItem('iara_usuario')
 
-      // Importação dinâmica do router para evitar dependência circular
-      import('../router/index.js').then(({ default: router }) => {
-        // Só redireciona se não estiver já na tela de login
-        if (router.currentRoute.value.name !== 'Login') {
-          router.push({ name: 'Login', query: { sessao: 'expirada' } })
-        }
-      })
+      // Redirecionamento global direto para evitar dependência circular com o router
+      if (!window.location.pathname.includes('/login')) {
+        window.location.href = '/login?sessao=expirada'
+      }
     }
 
     if (status === 403) {

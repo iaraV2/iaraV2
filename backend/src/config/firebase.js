@@ -1,18 +1,32 @@
-//?Essa pasta serve para construir a configuração do firebase
-import admin from 'firebase-admin'; 
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import admin from 'firebase-admin';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+let contaDeServico;
 
-// Monta o caminho apontando para a raiz do projeto-iara
-const caminhoDaChave = path.resolve(__dirname, '../../chaveJsonFirebaseFirestore.json');
+if (process.env.FIREBASE_CREDENTIALS) {
+  console.log("🔥 Usando Firebase via ENV");
 
-// Lemos o arquivo fisicamente e transformamos em JSON
-const arquivoBruto = fs.readFileSync(caminhoDaChave, 'utf8');
-const contaDeServico = JSON.parse(arquivoBruto);
+  contaDeServico = JSON.parse(process.env.FIREBASE_CREDENTIALS);
+  
+// chave do Fire Base de Ricardo 
+// const caminhoDaChave = path.resolve(__dirname, '../../chaveJsonFirebaseFirestore.json');
+
+  // 🔥 FIX PRINCIPAL
+  contaDeServico.private_key = contaDeServico.private_key.replace(/\\n/g, '\n');
+
+} else {
+  console.log("📁 Usando Firebase via arquivo JSON");
+  const fs = await import('fs');
+  const path = await import('path');
+  const { fileURLToPath } = await import('url');
+
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+
+  const caminhoDaChave = path.resolve(__dirname, '../../chaveJsonFirebaseFirestore.json');
+  const arquivoBruto = fs.readFileSync(caminhoDaChave, 'utf8');
+
+  contaDeServico = JSON.parse(arquivoBruto);
+}
 
 if (!admin.apps.length) {
   admin.initializeApp({
@@ -20,11 +34,7 @@ if (!admin.apps.length) {
   });
 }
 
-const db = admin.firestore(); //? inicaliza o firestore atribuindo a variavel db
-const auth = admin.auth(); //? inicializa o firebase auth atribuindo a variavel auth
+const db = admin.firestore();
+const auth = admin.auth();
 
-export { 
-  db, 
-  auth,
-  admin 
-}; //? modulos exportados para utilizarmos em outros locais
+export { db, auth, admin };

@@ -1,41 +1,129 @@
+// frontend/src/router/index.js
+// CORREÇÃO: rota /admin/dashboard agora verifica role além de autenticação
+
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stores/auth.js'
 
-const routes = [ 
+const routes = [
   {
     path: '/',
     name: 'Inicio',
-    component: () => import('../views/TelaInicio.vue'),
-    meta: { requerAuth: false, somenteDeslogado: false }, //o meta é um objeto customizável para guardar informações sobre a rota. Aqui usamos para controlar acesso.
+    component: () => import('../views/inicio/TelaInicio.vue'),
+    meta: { requerAuth: false, somenteDeslogado: false },
   },
   {
     path: '/login',
     name: 'Login',
-    component: () => import('../views/TelaLogin.vue'),
-    meta: { requerAuth: false, somenteDeslogado: true }, //só pode acessar se NÃO estiver autenticado
+    component: () => import('../views/login/Login.vue'),
+    meta: { requerAuth: false, somenteDeslogado: true },
   },
   {
-  }
+    path: '/cadastro',
+    name: 'Cadastro',
+    component: () => import('../views/cadastro/TelaCadastro.vue'),
+    meta: { requerAuth: false, somenteDeslogado: true },
+  },
+  {
+    path: '/esqueci-senha',
+    name: 'EsqueciSenha',
+    component: () => import('../views/esqueci-senha/EsqueciSenha.vue'),
+    meta: { requerAuth: false, somenteDeslogado: true },
+  },
+  {
+    path: '/menu',
+    name: 'Menu',
+    component: () => import('../views/menu/Menu.vue'),
+    meta: { requerAuth: false },
+  },
+  {
+    path: '/sala-de-aula',
+    name: 'SalaDeAula',
+    component: () => import('../views/sala_de_aula/sala-de-aula.vue'),
+    meta: { requerAuth: false },
+  },
+  {
+    path: '/sala-de-aula/:salaId/aulas',
+    name: 'ListaAulasSala',
+    component: () => import('../views/sala_de_aula/Lista.vue'),
+    props: true,
+    meta: { requerAuth: false },
+  },
+  {
+    path: '/aula/:id/:titulo/:nivel/:progresso/:videoId',
+    name: 'Aula',
+    component: () => import('../views/sala_de_aula/Aula.vue'),
+    props: true,
+    meta: { requerAuth: false },
+  },
+  {
+    path: '/favoritos',
+    name: 'Favoritos',
+    component: () => import('../views/sala_de_aula/favoritos.vue'),
+    meta: { requerAuth: false },
+  },
+  {
+    path: '/perfil',
+    name: 'Perfil',
+    component: () => import('../views/sala_de_aula/perfil.vue'),
+    meta: { requerAuth: false },
+  },
+  {
+    path: '/chat',
+    name: 'Chat',
+    component: () => import('../views/chat/Chat.vue'),
+    meta: { requerAuth: false },
+  },
+
+  // ── Painel Admin ──────────────────────────────────────────────────────────
+  {
+    path: '/admin/dashboard',
+    name: 'AdminDashboard',
+    component: () => import('../views/admin/AdminDashboard.vue'),
+    meta: {
+      requerAuth: true,
+      requerRole: 'admin',   // ← nova propriedade: só role 'admin' entra
+    },
+  },
+
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: '/',
+  },
 ]
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL), //
+  history: createWebHistory(),
   routes,
-  scrollBehavior: () => ({ top: 0 }), //? sempre rola pro topo quando muda de rota
+  scrollBehavior: () => ({ top: 0 }),
 })
 
-router.beforeEach((to, _from, next) => { //? guarda a lógica de autenticação aqui para não repetir em cada componente
+router.beforeEach((to, _from, next) => {
   const auth = useAuthStore()
 
   const precisaDeAuth    = to.meta.requerAuth === true
   const somenteDeslogado = to.meta.somenteDeslogado === true
+  const roleNecessaria   = to.meta.requerRole
 
+  // 1. Rota privada sem sessão → Login
   if (precisaDeAuth && !auth.estaAutenticado) {
     return next({ name: 'Login', query: { redirect: to.fullPath } })
   }
 
+  // 2. Rota com role específica → verifica role do token
+  //    Lê direto do token decodificado para não depender de chamada extra ao backend
+  if (roleNecessaria && auth.estaAutenticado) {
+    const roleDoUsuario = auth.usuario?.role
+
+    if (roleDoUsuario !== roleNecessaria) {
+      // Aluno/professor que tentou acessar /admin/dashboard → vai para o menu deles
+      console.warn(`[Router] Acesso negado à rota ${to.path}: role "${roleDoUsuario}" não tem permissão.`)
+      return next({ name: 'Menu' })
+    }
+  }
+
+  // 3. Rota só para deslogados (login, cadastro) com sessão ativa → Menu
   if (somenteDeslogado && auth.estaAutenticado) {
-    return next({ name: 'Chat' })
+    return next({ name: 'Menu' })
   }
 
   next()

@@ -25,11 +25,15 @@ const cadastrarUsuarioController = async (req, res) => { //? req = request / res
 const loginUsuarioController = async (req, res) => {
     try {
         const dados = req.body
+        console.log('📥 Controller login - dados recebidos:', dados);
+        
         const resultado = await loginUsuarioService(dados)
+        console.log('✅ Login sucesso:', resultado);
 
         res.status(200).json(resultado)
         
     } catch (error) {
+        console.log('❌ Erro no login controller:', error.message);
         res.status(400).json({ erro: error.message });
     }
     
