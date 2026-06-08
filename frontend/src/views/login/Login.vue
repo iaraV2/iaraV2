@@ -32,9 +32,9 @@
             {{ carregando ? 'Aguarde...' : 'COMEÇAR' }}
           </button>
 
-          <button type="button" @click="router.push('/menu')" class="w-1/2 h-13 rounded-full bg-green-600 hover:bg-green-500 text-white font-['Quicksand'] font-bold text-xs transition-all duration-200 shadow-md">
+          <!-- <button type="button" @click="router.push('/menu')" class="w-1/2 h-13 rounded-full bg-green-600 hover:bg-green-500 text-white font-['Quicksand'] font-bold text-xs transition-all duration-200 shadow-md">
             MENU TESTE
-          </button>
+          </button> -->
         </div>
 
         <div class="text-center text-white font-['Quicksand'] mt-2 space-y-1" alt="links">
@@ -114,6 +114,14 @@ async function handleSubmit() {
   /* Ajuste do container de botões para desktop largo */
   .w-72.mx-auto.flex { width: 400px !important; }
   .max-w-sm { max-width: 450px !important; }
+  
+  /* Correção do Checkbox circular no Desktop */
+  input[type="radio"] {
+    width: 20px !important;
+    height: 20px !important;
+    min-width: 20px !important;
+    flex-shrink: 0 !important;
+  }
 }
 
 /* RESTAURANDO NOTEBOOKS (1366x768) */

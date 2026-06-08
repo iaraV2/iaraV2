@@ -1,5 +1,15 @@
 <template>
-  <div class="min-h-screen bg-[#420583] flex flex-col items-center py-4 px-3 pb-12 overflow-y-auto font-['Quicksand'] hide-scrollbar">
+  <div class="w-full h-full flex flex-col items-center py-4 px-3 pb-12 overflow-y-auto font-['Quicksand'] hide-scrollbar relative bg-[#380075]">
+    <!-- Abstract shapes -->
+    <div class="absolute top-20 left-10 w-64 h-64 bg-cyan-400/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute bottom-40 right-10 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+    
+    <!-- Purple circles -->
+    <div class="absolute -top-20 -left-10 w-40 h-40 sm:w-90 sm:h-90 rounded-full opacity-40 z-0" style=" background-color: #7a3cae;"></div>
+    <div class="absolute top-20 right-10 w-32 h-32 sm:top-40 sm:right-32 sm:w-70 sm:h-70 rounded-full opacity-35 z-0" style=" background-color: #7a3cae;"></div>
+    <div class="absolute bottom-20 left-10 w-24 h-24 sm:bottom-48 sm:left-40 sm:w-50 sm:h-50 rounded-full opacity-18 z-0" style=" background-color: #7a3cae;"></div>
+    <div class="absolute bottom-32 right-10 w-20 h-20 sm:bottom-32 sm:right-40 sm:w-44 sm:h-44 rounded-full opacity-15 z-0" style=" background-color: #7a3cae;"></div>
+    <div class="absolute top-60 left-5 w-8 h-8 sm:top-80 sm:left-16 sm:w-9 sm:h-9 rounded-full opacity-12 z-0" style=" background-color: #7a3cae;"></div>
     <BackButton
       button-class="fixed top-5 left-4 z-[1000] w-9 h-9 flex items-center justify-center bg-white/10 backdrop-blur-md border border-white/15 text-white rounded-full cursor-pointer transition-all duration-300 hover:bg-cyan-400 hover:border-cyan-400 hover:text-[#420583] hover:scale-105 active:scale-95 btn-voltar-hover"
       @click="router.push({ name: 'SalaDeAula' })"
@@ -16,8 +26,25 @@
         <path d="M12 5v14M5 12h14"/>
       </svg>
     </button>
+    <!-- Loading state -->
+    <div v-if="carregando" class="flex flex-col items-center justify-center h-screen w-full gap-4 absolute inset-0">
+      <div class="w-12 h-12 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
+      <p class="text-white/60 text-sm">Carregando suas aulas...</p>
+    </div>
 
-    <template v-if="curso">
+    <!-- Error state -->
+    <div v-else-if="erroCarregamento" class="flex flex-col items-center justify-center py-20 gap-4 text-center px-6">
+      <p class="text-white text-lg font-semibold">Ops, parece que temos um problema no servidor, tente novamente mais tarde!</p>
+      <button
+        type="button"
+        @click="recarregarAulas"
+        class="mt-4 bg-cyan-400 text-[#420583] font-bold py-2 px-6 rounded-full hover:bg-cyan-300 transition-colors text-sm"
+      >
+        Tentar novamente
+      </button>
+    </div>
+
+    <template v-else-if="curso">
       <header class="w-full max-w-md mt-10 mb-4 shrink-0 px-1">
         <div class="flex items-center justify-between gap-3">
           <div class="flex-1 text-center relative top-5">
@@ -29,11 +56,11 @@
         </div>
       </header>
 
-      <section class="w-full max-w-md flex flex-col gap-3 px-1 mt-8 relative top-8">
+      <section class="w-full max-w-[92%] flex flex-col gap-3 px-1 mt-8 relative top-8">
         <article
           v-for="aula in curso.aulasSemana"
           :key="aula.id"
-          class="bg-white rounded-2xl p-4 shadow-xl flex flex-col gap-2"
+          class="bg-white rounded-2xl p-4 shadow-xl flex flex-col gap-6"
         >
           <div class="flex items-start gap-2">
             <div class="min-w-0 flex-1 relative left-2 top-2">
@@ -44,12 +71,12 @@
               <p class="text-gray-500 text-xs mt-1">Publicada em {{ formatarData(aula.dataLancamento) }}</p>
             </div>
           </div>
-          <div class="flex justify-end gap-2 pr-2 relative bottom-[1.4rem] right-2">
+          <div class="flex justify-center items-center gap-2 pr-0 relative bottom-2">
             <button
               v-if="isProfessor"
               type="button"
               @click="excluirAula(aula.id)"
-              class="font-bold py-1.5 px-6 rounded-full transition-colors min-w-[70px] text-sm bg-red-500 text-white hover:bg-red-600"
+              class="font-bold py-1.5 px-4 rounded-full transition-colors min-w-[70px] text-sm bg-red-500 text-white hover:bg-red-600"
             >
               Remover
             </button>
@@ -57,7 +84,7 @@
               v-if="isProfessor"
               type="button"
               @click="abrirModalEditarAula(aula)"
-              class="font-bold py-1.5 px-6 rounded-full transition-colors min-w-[70px] text-sm bg-cyan-400 text-[#420583] hover:bg-cyan-300"
+              class="font-bold py-1.5 px-4 rounded-full transition-colors min-w-[70px] text-sm bg-cyan-400 text-[#420583] hover:bg-cyan-300"
             >
               Editar
             </button>
@@ -75,17 +102,13 @@
     </template>
 
     <section v-else class="mt-24 text-center text-white max-w-xs px-4">
-      <p class="text-base font-bold mb-2">Sala não encontrada</p>
-      <button
-        type="button"
-        @click="router.push({ name: 'SalaDeAula' })"
-        class="mt-4 bg-orange-500 text-white font-bold py-2 px-6 rounded-full hover:bg-orange-600 transition-colors text-sm"
-      >
-        Voltar às salas
-      </button>
+      <p class="text-xl sm:text-2xl font-bold mb-2 mt-4 text-center relative top-5">Sala não encontrada</p>
+      
     </section>
 
-    <FooterAnjos wrapper-class="mt-8 shrink-0 relative top-8" img-class="w-20 opacity-70" />
+    
+
+    <SalaBottomNav />
 
     <!-- Modal Nova Aula (cadastro avulso) -->
     <div v-if="mostrarModalNovaAula" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[3000] p-4" @click.self="mostrarModalNovaAula = false">
@@ -177,6 +200,13 @@
             <label class="text-white/80 text-sm font-semibold mb-2 block">Tópicos (separados por vírgula)</label>
             <textarea v-model="aulaEditando.topicosTexto" class="w-full bg-white/10 border border-white/15 rounded-xl p-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400 h-20 resize-none" placeholder="Tópico 1, Tópico 2, Tópico 3"></textarea>
           </div>
+          <div>
+            <label class="text-white/80 text-sm font-semibold mb-2 block">Adicionar PDFs (máx. 700KB cada)</label>
+            <input type="file" accept=".pdf,application/pdf" multiple @change="handlePdfUploadEdicao" class="w-full bg-white/10 border border-white/15 rounded-xl p-3 text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-cyan-400 file:text-[#420583] hover:file:bg-cyan-300">
+            <div v-if="aulaEditando.pdfsNovos?.length" class="mt-2 flex flex-col gap-1">
+              <div v-for="(pdf, i) in aulaEditando.pdfsNovos" :key="i" class="text-white/60 text-xs">📄 {{ pdf.name }}</div>
+            </div>
+          </div>
         </div>
 
         <div class="flex gap-3 mt-4">
@@ -189,16 +219,19 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import BackButton from '../../components/ui/BackButton.vue'
 import IconLock from '../../components/ui/IconLock.vue'
 import FooterAnjos from '../../components/sala/FooterAnjos.vue'
+import SalaBottomNav from '../../components/sala/SalaBottomNav.vue'
 import { formatarData } from '../../composables/formatarData.js'
 import { getCursoById } from './salasCurso.js'
+import { useAuthStore } from '../../stores/auth.js'
 import {
   buscarAulasPorTurmaId, buscarTurmaPorId, atualizarAula,
-  excluirAula as deletarAulaApi, salvarAulaNaTurma, uploadPdf,
+  excluirAula as deletarAulaApi, salvarAulaNaTurma, uploadPdf, mapearTurmaParaCard,
+  buscarProgressoAula, zerarProgressoProfessor as zerarProgressoProfessorApi,
 } from '../../services/firebase.js'
 
 const MAX_PDF_BYTES = 700 * 1024
@@ -208,9 +241,12 @@ const props = defineProps({
 })
 
 const router = useRouter()
+const authStore = useAuthStore()
 const curso = ref(null)
 const turmaDoBackend = ref(false)
-const isProfessor = ref(true)
+const carregando = ref(true)
+const erroCarregamento = ref(false)
+const isProfessor = computed(() => authStore.usuario?.role === 'professor')
 const mostrarModalEditarAula = ref(false)
 const mostrarModalNovaAula = ref(false)
 const aulaEditando = ref(null)
@@ -219,32 +255,62 @@ const novaAula = ref({
   descricao: '', topicosTexto: '', pdfs: [],
 })
 
-onMounted(async () => {
+async function carregarAulas() {
+  carregando.value = true
+  erroCarregamento.value = false
+
   try {
     const turma = await buscarTurmaPorId(String(props.salaId))
     if (turma) {
       turmaDoBackend.value = true
       const aulas = await buscarAulasPorTurmaId(String(props.salaId))
+      const aulasComProgresso = await Promise.all(
+        aulas.map(async (a) => {
+          const progresso = { videoAssistido: false, pdfVisualizado: false, pdfBaixado: false, progresso: 0 }
+          return {
+            ...a,
+            videoId: extrairVideoIdDeLink(a.link || ''),
+            liberado: a.liberado ?? true,
+            topicos: Array.isArray(a.topicos) ? a.topicos : [],
+            dataLancamento: a.dataLancamento || '',
+            descricao: a.descricao || '',
+            progressoAula: progresso || { videoAssistido: false, pdfVisualizado: false, pdfBaixado: false, progresso: 0 }
+          }
+        })
+      )
       curso.value = {
-        ...turma,
-        titulo: turma.nome || turma.titulo,
-        aulasSemana: aulas.map(a => ({
-          ...a,
-          videoId: extrairVideoIdDeLink(a.link || ''),
-          liberado: a.liberado ?? true,
-          topicos: a.topicos || [],
-          pdfs: a.pdfs || [],
-          descricao: a.descricao || '' // <- garante que descricao vem mapeada
-        }))
+        ...mapearTurmaParaCard(turma),
+        aulasSemana: aulasComProgresso
       }
-      return
+    } else {
+      const cursoEstatico = getCursoById(props.salaId)
+      if (cursoEstatico) {
+        curso.value = cursoEstatico
+      } else {
+        erroCarregamento.value = true
+      }
     }
   } catch (error) {
     console.error('Erro ao buscar turma no backend:', error)
+    const cursoEstatico = getCursoById(props.salaId)
+    if (cursoEstatico) {
+      curso.value = cursoEstatico
+    } else {
+      erroCarregamento.value = true
+    }
+  } finally {
+    // Delay de 1.5 segundos antes de mostrar o conteúdo
+    await new Promise(resolve => setTimeout(resolve, 1500))
+    carregando.value = false
   }
+}
 
-  const cursoEstatico = getCursoById(props.salaId)
-  if (cursoEstatico) curso.value = cursoEstatico
+function recarregarAulas() {
+  carregarAulas()
+}
+
+onMounted(async () => {
+  await carregarAulas()
 })
 
 function extrairVideoIdDeLink(link) {
@@ -318,6 +384,7 @@ async function criarAulaAvulsa() {
       videoId: extrairVideoId(novaAula.value.videoId),
       topicos: topicosArray,
       liberado: novaAula.value.liberado,
+      dataLancamento: novaAula.value.dataLancamento,
       ordem: curso.value?.aulasSemana?.length ?? 0,
     })
     if (novaAula.value.pdfs.length > 0 && aulaSalva.id) {
@@ -348,10 +415,16 @@ async function criarAulaAvulsa() {
   }
 }
 
+function handlePdfUploadEdicao(event) {
+  if (!aulaEditando.value) return
+  aulaEditando.value.pdfsNovos = Array.from(event.target.files || [])
+}
+
 function abrirModalEditarAula(aula) {
   aulaEditando.value = {
     ...aula,
-    topicosTexto: aula.topicos ? aula.topicos.join(', ') : ''
+    topicosTexto: aula.topicos ? aula.topicos.join(', ') : '',
+    pdfsNovos: [],
   }
   mostrarModalEditarAula.value = true
 }
@@ -384,7 +457,22 @@ async function salvarEdicaoAula() {
       link: `https://www.youtube.com/watch?v=${videoIdExtraido}`,
       liberado: aulaEditando.value.liberado,
       topicos: topicosArray,
+      dataLancamento: aulaEditando.value.dataLancamento,
     })
+
+    const pdfsNovos = aulaEditando.value.pdfsNovos || []
+    for (const arquivo of pdfsNovos) {
+      if (arquivo.size > MAX_PDF_BYTES) {
+        alert(`PDF "${arquivo.name}" excede 700KB e foi ignorado.`)
+        continue
+      }
+      try {
+        await uploadPdf(String(props.salaId), aulaEditando.value.id, arquivo)
+      } catch (erroPdf) {
+        console.error(`Erro ao enviar PDF "${arquivo.name}":`, erroPdf)
+        alert(`PDF "${arquivo.name}" não pôde ser enviado: ${erroPdf.message}`)
+      }
+    }
     const index = curso.value.aulasSemana.findIndex(a => a.id === aulaEditando.value.id)
     if (index > -1) {
       curso.value.aulasSemana[index] = {
@@ -401,6 +489,14 @@ async function salvarEdicaoAula() {
     alert('Erro ao salvar edição. Tente novamente.')
   }
 }
+
+function textoBotaoAula(aula) {
+  const progresso = aula.progressoAula?.progresso || 0
+  if (progresso === 0) return 'Acessar'
+  if (progresso >= 100) return 'Rever'
+  return 'Continuar'
+}
+
 </script>
 
 <style scoped>

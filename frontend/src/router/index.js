@@ -9,69 +9,69 @@ const routes = [
     path: '/',
     name: 'Inicio',
     component: () => import('../views/inicio/TelaInicio.vue'),
-    meta: { requerAuth: false, somenteDeslogado: false },
+    meta: { requerAuth: false, somenteDeslogado: false, index: 1 },
   },
   {
     path: '/login',
     name: 'Login',
     component: () => import('../views/login/Login.vue'),
-    meta: { requerAuth: false, somenteDeslogado: true },
+    meta: { requerAuth: false, somenteDeslogado: true, index: 2 },
   },
   {
     path: '/cadastro',
     name: 'Cadastro',
     component: () => import('../views/cadastro/TelaCadastro.vue'),
-    meta: { requerAuth: false, somenteDeslogado: true },
+    meta: { requerAuth: false, somenteDeslogado: true, index: 2 },
   },
   {
     path: '/esqueci-senha',
     name: 'EsqueciSenha',
     component: () => import('../views/esqueci-senha/EsqueciSenha.vue'),
-    meta: { requerAuth: false, somenteDeslogado: true },
+    meta: { requerAuth: false, somenteDeslogado: true, index: 2 },
   },
   {
     path: '/menu',
     name: 'Menu',
     component: () => import('../views/menu/Menu.vue'),
-    meta: { requerAuth: false },
+    meta: { requerAuth: false, index: 3 },
   },
   {
     path: '/sala-de-aula',
     name: 'SalaDeAula',
     component: () => import('../views/sala_de_aula/sala-de-aula.vue'),
-    meta: { requerAuth: false },
+    meta: { requerAuth: false, index: 4 },
   },
   {
     path: '/sala-de-aula/:salaId/aulas',
     name: 'ListaAulasSala',
     component: () => import('../views/sala_de_aula/Lista.vue'),
     props: true,
-    meta: { requerAuth: false },
+    meta: { requerAuth: false, index: 5 },
   },
   {
     path: '/aula/:id/:titulo/:nivel/:progresso/:videoId',
     name: 'Aula',
     component: () => import('../views/sala_de_aula/Aula.vue'),
     props: true,
-    meta: { requerAuth: false },
+    meta: { requerAuth: false, index: 6 },
   },
   {
     path: '/favoritos',
     name: 'Favoritos',
     component: () => import('../views/sala_de_aula/favoritos.vue'),
-    meta: { requerAuth: false },
+    meta: { requerAuth: false, index: 4 },
   },
   {
     path: '/perfil',
     name: 'Perfil',
     component: () => import('../views/sala_de_aula/perfil.vue'),
-    meta: { requerAuth: false },
+    meta: { requerAuth: false, index: 4 },
   },
   {
     path: '/chat',
     name: 'Chat',
     component: () => import('../views/chat/Chat.vue'),
-    meta: { requerAuth: false },
+    meta: { requerAuth: false, index: 4 },
   },
 
   // ── Painel Admin ──────────────────────────────────────────────────────────
@@ -82,6 +82,7 @@ const routes = [
     meta: {
       requerAuth: true,
       requerRole: 'admin',   // ← nova propriedade: só role 'admin' entra
+      index: 10
     },
   },
 

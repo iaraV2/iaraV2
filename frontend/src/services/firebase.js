@@ -26,29 +26,59 @@ export async function salvarTurma(turma) {
   const res = await fetch(`${BASE_URL}/iara/turmas`, {
     method: 'POST',
     headers: headers(),
-    body: JSON.stringify({ nome: turma.titulo, descricao: turma.descricao || '' })
+    body: JSON.stringify({
+      nome: turma.titulo,
+      descricao: turma.descricao || '',
+      codigo: turma.codigo || undefined,
+      cor: turma.cor,
+      icone: turma.icone,
+      nivel: turma.nivel,
+    }),
   })
   const data = await handleResponse(res)
   return {
-    id: data.id, titulo: turma.titulo, codigo: data.codigo,
-    cor: turma.cor, icone: turma.icone, nivel: turma.nivel, progresso: 0
+    id: data.id,
+    titulo: turma.titulo,
+    codigo: data.codigo,
+    cor: data.cor || turma.cor,
+    icone: data.icone || turma.icone,
+    nivel: data.nivel || turma.nivel,
+    progresso: data.progresso ?? 0,
   }
 }
 
 export async function buscarTurmaPorCodigo(codigo) {
-  const res = await fetch(`${BASE_URL}/iara/turmas/minhas`, { headers: headers() })
-  const turmas = await handleResponse(res)
-  return turmas.find(t => t.codigo === codigo.toUpperCase()) || null
+  const res = await fetch(`${BASE_URL}/iara/turmas/buscar/${codigo.toUpperCase()}`)
+  const data = await handleResponse(res)
+  return data || null
 }
 
+
 export async function buscarTurmaPorId(id) {
-  const res = await fetch(`${BASE_URL}/iara/turmas/minhas`, { headers: headers() })
+  const usuarioStr = localStorage.getItem('iara_usuario')
+  const usuario = usuarioStr ? JSON.parse(usuarioStr) : null
+  const role = usuario?.role || 'aluno'
+  
+  // Para alunos, usa o endpoint de turmas públicas e filtra pelo ID
+  // Para professores, usa o endpoint de turmas do professor
+  const endpoint = role === 'aluno' ? '/iara/turmas/todas-publicas' : '/iara/turmas/minhas'
+  const res = await fetch(`${BASE_URL}${endpoint}`, { headers: headers() })
   const turmas = await handleResponse(res)
   return turmas.find(t => t.id === id) || null
 }
 
 export async function buscarTodasTurmas() {
-  const res = await fetch(`${BASE_URL}/iara/turmas/minhas`, { headers: headers() })
+  const usuarioStr = localStorage.getItem('iara_usuario')
+  const usuario = usuarioStr ? JSON.parse(usuarioStr) : null
+  const role = usuario?.role || 'aluno'
+  // Alunos veem todas as turmas do banco de dados (incluindo as criadas por professores)
+  const endpoint = role === 'aluno' ? '/iara/turmas/todas-publicas' : '/iara/turmas/minhas'
+  const res = await fetch(`${BASE_URL}${endpoint}`, { headers: headers() })
+  return handleResponse(res)
+}
+
+export async function buscarMinhasTurmasAluno() {
+  const res = await fetch(`${BASE_URL}/iara/turmas/minhas-turmas`, { headers: headers() })
   return handleResponse(res)
 }
 
@@ -56,7 +86,15 @@ export async function atualizarTurma(id, dados) {
   const res = await fetch(`${BASE_URL}/iara/turmas/${id}`, {
     method: 'PUT',
     headers: headers(),
-    body: JSON.stringify({ nome: dados.titulo, descricao: dados.descricao })
+    body: JSON.stringify({
+      nome: dados.titulo,
+      descricao: dados.descricao,
+      cor: dados.cor,
+      icone: dados.icone,
+      nivel: dados.nivel,
+      progresso: dados.progresso,
+      codigo: dados.codigo,
+    }),
   })
   return handleResponse(res)
 }
@@ -82,6 +120,7 @@ export async function salvarAulaNaTurma(turmaId, aula) {
       topicos: aula.topicos || [],
       pdfs: [],
       liberado: aula.liberado ?? true,
+      dataLancamento: aula.dataLancamento || null,
     }),
   })
   return handleResponse(res)
@@ -99,13 +138,27 @@ export async function salvarAula(aula) {
       titulo: aula.titulo,
       descricao: aula.descricao || '',
       link: aula.videoId ? `https://www.youtube.com/watch?v=${aula.videoId}` : '',
-      ordem: 0,
+      ordem: aula.ordem ?? 0,
       topicos: aula.topicos || [],
       pdfs: [],
       liberado: aula.liberado ?? true,
-    })
+      dataLancamento: aula.dataLancamento || null,
+    }),
   })
   return handleResponse(res)
+}
+
+export function mapearTurmaParaCard(t) {
+  return {
+    ...t,
+    id: t.id,
+    titulo: t.nome || t.titulo,
+    progresso: t.progresso ?? 0,
+    cor: t.cor || '#FFD700',
+    icone: t.icone || '🌻',
+    nivel: t.nivel || 'Iniciante',
+    aulasSemana: t.aulasSemana || [],
+  }
 }
 
 export async function buscarAulasPorTurmaCodigo(turmaCodigo) {
@@ -185,5 +238,74 @@ export async function deletarPdf(turmaId, conteudoId, pdfId) {
     `${BASE_URL}/iara/turmas/${turmaId}/conteudos/${conteudoId}/pdfs/${pdfId}`,
     { method: 'DELETE', headers: headers() }
   )
+  return handleResponse(res)
+
+
+}
+export async function buscarTurmasPorTitulo(titulo) {
+  // Garantimos que a URL está perfeitamente limpa
+  const url = `${BASE_URL}/iara/turmas/buscar-por-titulo/${encodeURIComponent(titulo)}`;
+
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: headers() // Injeta corretamente o Content-Type e o Token do Aluno
+  });
+
+  const dados = await handleResponse(res);
+
+  // Mapeia os campos vindos do banco ('nome') para o formato que o seu componente Vue precisa ('titulo')
+  return (dados || []).map(t => ({
+    id: t.id,
+    titulo: t.nome || 'Turma Sem Nome', // Transforma 'nome' do Firestore em 'titulo' para o Vue
+    descricao: t.descricao || '',
+    codigo: t.codigo || '',
+    cor: t.cor || '#420583',
+    icone: t.icone || '🏫',
+    nivel: t.nivel || 'Iniciante',
+    progresso: t.progresso ?? 0
+  }));
+}
+
+// ─── PROGRESSO DE AULAS ─────────────────────────────────────────────────────
+
+export async function salvarProgressoAula(turmaId, conteudoId, progressoData) {
+  const usuarioStr = localStorage.getItem('iara_usuario')
+  const usuario = usuarioStr ? JSON.parse(usuarioStr) : null
+  if (!usuario) throw new Error('Usuário não autenticado')
+
+  const res = await fetch(`${BASE_URL}/iara/progresso`, {
+    method: 'POST',
+    headers: headers(),
+    body: JSON.stringify({
+      turmaId,
+      conteudoId,
+      usuarioId: usuario.id,
+      ...progressoData
+    }),
+  })
+  return handleResponse(res)
+}
+
+export async function buscarProgressoAula(turmaId, conteudoId) {
+  const usuarioStr = localStorage.getItem('iara_usuario')
+  const usuario = usuarioStr ? JSON.parse(usuarioStr) : null
+  if (!usuario) return { videoAssistido: false, pdfVisualizado: false, pdfBaixado: false, progresso: 0 }
+
+  try {
+    const res = await fetch(`${BASE_URL}/iara/progresso/${turmaId}/${conteudoId}/${usuario.id}`, {
+      headers: headers()
+    })
+    return handleResponse(res)
+  } catch (error) {
+    // Se o endpoint não existir, retorna progresso padrão
+    return { videoAssistido: false, pdfVisualizado: false, pdfBaixado: false, progresso: 0 }
+  }
+}
+
+export async function zerarProgressoProfessor() {
+  const res = await fetch(`${BASE_URL}/iara/progresso/professor/zerar`, {
+    method: 'DELETE',
+    headers: headers()
+  })
   return handleResponse(res)
 }

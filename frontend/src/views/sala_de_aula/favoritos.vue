@@ -1,5 +1,15 @@
 <template>
-  <div class="min-h-screen bg-[#420583] flex flex-col items-center py-6 px-4 pb-24 overflow-y-auto font-['Quicksand'] text-white w-full hide-scrollbar">
+  <div class="w-full h-full flex flex-col items-center py-6 px-4 pb-24 overflow-y-auto font-['Quicksand'] text-white hide-scrollbar relative bg-[#380075]">
+    <!-- Abstract shapes -->
+    <div class="absolute top-20 left-10 w-64 h-64 bg-cyan-400/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute bottom-40 right-10 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+    
+    <!-- Purple circles -->
+    <div class="absolute -top-20 -left-10 w-40 h-40 sm:w-90 sm:h-90 rounded-full opacity-40 z-0" style=" background-color: #7a3cae;"></div>
+    <div class="absolute top-20 right-10 w-32 h-32 sm:top-40 sm:right-32 sm:w-70 sm:h-70 rounded-full opacity-35 z-0" style=" background-color: #7a3cae;"></div>
+    <div class="absolute bottom-20 left-10 w-24 h-24 sm:bottom-48 sm:left-40 sm:w-50 sm:h-50 rounded-full opacity-18 z-0" style=" background-color: #7a3cae;"></div>
+    <div class="absolute bottom-32 right-10 w-20 h-20 sm:bottom-32 sm:right-40 sm:w-44 sm:h-44 rounded-full opacity-15 z-0" style=" background-color: #7a3cae;"></div>
+    <div class="absolute top-60 left-5 w-8 h-8 sm:top-80 sm:left-16 sm:w-9 sm:h-9 rounded-full opacity-12 z-0" style=" background-color: #7a3cae;"></div>
     <header class="w-full max-w-md mt-6 mb-8 shrink-0 relative px-2">
       <BackButton
         button-class="absolute left-4 top-10 w-9 h-9 z-50 pointer-events-auto flex items-center justify-center bg-white/10 backdrop-blur-md border border-white/15 text-white rounded-full cursor-pointer transition-all duration-300 hover:bg-cyan-400 hover:border-cyan-400 hover:text-[#420583] hover:scale-105"
@@ -13,9 +23,9 @@
 
     <main class="w-[85%] max-w-md flex-1 px-2 flex flex-col gap-14">
       <div v-if="favoritos.length === 0" class="text-center text-white/60 py-12">
-        <span class="text-6xl mb-4 block">❤️</span>
-        <p class="text-lg font-bold mb-2">Você ainda não tem favoritos</p>
-        <p class="text-sm">Toque no ícone de coração em uma aula para favoritá-la</p>
+        <span class="text-6xl mb-4 block relative top-6">❤️</span>
+        <p class="text-lg font-bold mb-2 relative top-6">Você ainda não tem favoritos</p>
+        <p class="text-sm relative top-6">Toque no ícone de coração em uma aula para favoritá-la</p>
       </div>
       <div v-else class="  relative top-11 flex flex-col gap-2 mt-10">
         <div

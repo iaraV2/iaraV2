@@ -1,5 +1,15 @@
 <template>
-  <div class="min-h-screen bg-[#420583] flex flex-col items-center py-6 px-4 pb-24 overflow-y-auto font-['Quicksand'] text-white hide-scrollbar">
+  <div class="w-full h-full flex flex-col items-center py-6 px-4 pb-24 overflow-y-auto font-['Quicksand'] text-white hide-scrollbar relative bg-[#380075]">
+    <!-- Abstract shapes -->
+    <div class="absolute top-20 left-10 w-64 h-64 bg-cyan-400/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute bottom-40 right-10 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+    
+    <!-- Purple circles -->
+    <div class="absolute -top-20 -left-10 w-40 h-40 sm:w-90 sm:h-90 rounded-full opacity-40 z-0" style=" background-color: #7a3cae;"></div>
+    <div class="absolute top-20 right-10 w-32 h-32 sm:top-40 sm:right-32 sm:w-70 sm:h-70 rounded-full opacity-35 z-0" style=" background-color: #7a3cae;"></div>
+    <div class="absolute bottom-20 left-10 w-24 h-24 sm:bottom-48 sm:left-40 sm:w-50 sm:h-50 rounded-full opacity-18 z-0" style=" background-color: #7a3cae;"></div>
+    <div class="absolute bottom-32 right-10 w-20 h-20 sm:bottom-32 sm:right-40 sm:w-44 sm:h-44 rounded-full opacity-15 z-0" style=" background-color: #7a3cae;"></div>
+    <div class="absolute top-60 left-5 w-8 h-8 sm:top-80 sm:left-16 sm:w-9 sm:h-9 rounded-full opacity-12 z-0" style=" background-color: #7a3cae;"></div>
     <BackButton
       button-class="fixed top-5 left-5 z-[1000] w-10 h-10 flex items-center justify-center bg-white/10 backdrop-blur-md border border-white/15 text-white rounded-full cursor-pointer transition-all duration-300 hover:bg-cyan-400 hover:border-cyan-400 hover:text-[#420583] hover:scale-105 active:scale-95 btn-voltar-hover"
       @click="router.back()"
@@ -39,13 +49,13 @@
           <button
             @click="verFoto"
             :disabled="!fotoPerfil"
-            class="w-full py-3 px-4 bg-white/10 border border-white/15 rounded-xl font-semibold text-sm text-white transition-all hover:bg-white/20 active:scale-98 disabled:opacity-40 disabled:hover:bg-white/10 disabled:cursor-not-allowed"
+            class="w-[60%] relative left-[20%] py-3 px-4 bg-white/10 border border-white/15 rounded-xl font-semibold text-sm text-white transition-all hover:bg-white/20 active:scale-98 disabled:opacity-40 disabled:hover:bg-white/10 disabled:cursor-not-allowed"
           >
             Ver foto
           </button>
           <button
             @click="escolherFoto"
-            class="w-full py-3 px-4 bg-cyan-400 rounded-xl font-bold text-sm text-[#420583] shadow-md transition-all hover:bg-cyan-300 hover:scale-[1.02] active:scale-98"
+            class="w-[60%] relative left-[20%] py-3 px-4 bg-cyan-400 rounded-xl font-bold text-sm text-[#420583] shadow-md transition-all hover:bg-cyan-300 hover:scale-[1.02] active:scale-98"
           >
             Escolher foto
           </button>
@@ -79,7 +89,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import BackButton from '../../components/ui/BackButton.vue'
 import SalaBottomNav from '../../components/sala/SalaBottomNav.vue'
@@ -92,13 +102,38 @@ const emailUsuario = ref('')
 const mostrarOpcoes = ref(false)
 const mostrarVisualizador = ref(false)
 
+// ─── Chave isolada por role ────────────────────────────────────────────────────
+const roleUsuario = ref('aluno')
+
+const chaveStorage = computed(() =>
+  roleUsuario.value === 'professor' ? 'perfil_professor' : 'perfil_aluno'
+)
+
 onMounted(() => {
-  const perfil = localStorage.getItem('perfil_usuario')
-  if (perfil) {
-    const dados = JSON.parse(perfil)
-    fotoPerfil.value = dados.foto || ''
-    nomeUsuario.value = dados.nome || ''
-    emailUsuario.value = dados.email || ''
+  // 1. Lê o usuário logado — authStore salva em 'iara_usuario'
+  try {
+    const usuarioRaw = localStorage.getItem('iara_usuario')
+    if (usuarioRaw) {
+      const usuario = JSON.parse(usuarioRaw)
+      roleUsuario.value  = usuario.role  || 'aluno'
+      nomeUsuario.value  = usuario.nome  || ''
+      emailUsuario.value = usuario.email || ''
+    }
+  } catch {
+    roleUsuario.value = 'aluno'
+  }
+
+  // 2. Sobrescreve com o perfil personalizado da role correta (foto, nome editado)
+  try {
+    const perfilRaw = localStorage.getItem(chaveStorage.value)
+    if (perfilRaw) {
+      const dados = JSON.parse(perfilRaw)
+      fotoPerfil.value   = dados.foto  || ''
+      nomeUsuario.value  = dados.nome  || nomeUsuario.value
+      emailUsuario.value = dados.email || emailUsuario.value
+    }
+  } catch {
+    // localStorage corrompido — mantém dados do login
   }
 })
 
@@ -114,10 +149,12 @@ function handleFotoChange(event) {
   reader.onload = (e) => { fotoPerfil.value = e.target.result; salvarPerfil() }
   reader.readAsDataURL(file)
 }
+
+// Salva sempre na chave isolada da role atual
 function salvarPerfil() {
-  localStorage.setItem('perfil_usuario', JSON.stringify({
-    foto: fotoPerfil.value,
-    nome: nomeUsuario.value,
+  localStorage.setItem(chaveStorage.value, JSON.stringify({
+    foto:  fotoPerfil.value,
+    nome:  nomeUsuario.value,
     email: emailUsuario.value,
   }))
 }

@@ -1,62 +1,165 @@
 <template>
-  <div class="menu-container fixed top-0 left-0 w-full h-screen flex flex-col bg-[#380075] overflow-y-auto z-[999]">
-    
+  <div class="menu-container w-full h-full flex flex-col bg-[#380075] overflow-y-auto" :style="backgroundStyle">
+    <!-- Loading overlay -->
+    <div v-if="carregando" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[3000]">
+      <div class="flex flex-col items-center gap-4">
+        <div class="w-12 h-12 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
+        <p class="text-white/60 text-sm">Carregando chat...</p>
+      </div>
+    </div>
     <BackButton
       button-class="fixed top-12 left-5 z-[1000] w-10 h-10 flex items-center justify-center bg-white/10 backdrop-blur-md border border-white/15 text-white rounded-full cursor-pointer transition-all duration-300 hover:bg-cyan-400 hover:border-cyan-400 hover:text-[#420583] hover:scale-105 active:scale-95 btn-voltar-hover"
       @click="modal.visible = true"
     />
-
     <!-- Modal Reativo Customizado -->
     <div v-if="modal.visible" class="fixed inset-0 bg-black/60 flex items-center justify-center z-[2000] backdrop-blur-sm animate-fadeIn">
       <div class="bg-white rounded-3xl p-8 w-85 h-22 shadow-2xl text-center">
         <h3 class="font-['Quicksand'] font-bold text-[#420583] text-2xl mb-2">Sair da conta?</h3>
         <p class="font-['Quicksand'] text-gray-500 text-sm mb-6">Tem certeza que deseja se desconectar da IAra?</p>
         <div class="flex justify-center gap-3">
-<button @click="modal.visible = false" class="w-28 py-3 rounded-full font-['Quicksand'] font-bold text-gray-600 bg-gray-200 hover:bg-gray-300 transition-colors">Não</button>
-<button @click="efetuarLogout" class="w-28 py-3 rounded-full font-['Quicksand'] font-bold text-white bg-[#e25300] hover:bg-[#ff7b00] transition-colors">Sim, Sair</button>
+          <button @click="modal.visible = false" class="w-28 py-3 rounded-full font-['Quicksand'] font-bold text-gray-600 bg-gray-200 hover:bg-gray-300 transition-colors">Não</button>
+          <button @click="efetuarLogout" class="w-28 py-3 rounded-full font-['Quicksand'] font-bold text-white bg-[#e25300] hover:bg-[#ff7b00] transition-colors">Sim, Sair</button>
         </div>
       </div>
     </div>
-
     <!-- Metade superior -->
     <div class="metadeSuperior flex-shrink-0 min-h-[45%] w-full flex flex-col items-center justify-center relative overflow-visible">
       <div class="saudacaoContainer text-center z-10 animate-fadeIn">
         <h1 class="textoSaudacao font-['Quicksand'] text-white font-light text-[2rem] m-0">
-          Olá, <span class="nomeDestaque text-aqua font-bold capitalize">{{ nomeUsuario }}</span>!
+          Olá, <span class="nomeDestaque text-aqua font-bold capitalize">{{ nomeUsuario }}</span>!👋
         </h1>
         <p class="subtextoSaudacao font-['Quicksand'] text-[#e0e0e0] text-base mt-[5px]">
           Como posso te ajudar hoje?
         </p>
       </div>
-      <img src="/img/iara.png" alt="Logo IAra" class="logoIaraMenu w-56 h-auto object-contain drop-shadow-[0_0_10px_rgba(0,0,0,0.3)]" />
+      <div class="flex items-center justify-center gap-4 relative z-[5]">
+        <img src="/img/foguete2.png" alt="Foguete" class="extra-menu-img w-[50%] relative bottom-[4rem] left-[5.7rem] transform rotate-22 h-auto object-contain drop-shadow-[0_0_10px_rgba(0,0,0,0.3)]" />
+        <img src="/img/lampada.png" alt="lampada" class="extra-menu-img w-[18%] relative top-[2rem] left-[0.5rem] transform -rotate-12 h-auto object-contain drop-shadow-[0_0_10px_rgba(0,0,0,0.3)]" />
+        <img src="/img/iara.png" alt="Logo IAra" class="logoIaraMenu w-56 -left-[1.9rem] h-auto object-contain drop-shadow-[0_0_10px_rgba(0,0,0,0.3)] relative z-[5]" />
+        <img src="/img/beca.png" alt="beca" class="extra-menu-img w-[26%] relative bottom-[4.3rem] right-[4rem] transform rotate-22 h-auto object-contain drop-shadow-[0_0_10px_rgba(0,0,0,0.3)]" />
+        <img src="/img/livro.png" alt="livro" class="extra-menu-img w-[26%] relative top-[2.5rem] right-[11.5rem] transform rotate-22 h-auto object-contain drop-shadow-[0_0_10px_rgba(0,0,0,0.3)]" />
+      </div>      
+      <!-- Wave Divider -->
+      <div class="absolute bottom-[-10px] left-0 w-full overflow-hidden leading-[0] z-0 wave-divider">
+        <svg viewBox="0 0 1200 120" preserveAspectRatio="none" class="relative block w-full h-[70px] sm:h-[90px] md:h-[120px]" fill="#f0f4f8">
+          <path d="M0,60C100,10,200,110,300,60C400,10,500,110,600,60C700,10,800,110,900,60C1000,10,1100,110,1200,60V120H0V60Z"></path>
+        </svg>
+      </div>
     </div>
+    <!-- Metade inferior -->
+    <div class="estruturaInferior flex-grow w-full bg-[#f0f4f8] flex justify-center items-start p-5 pt-2 sm:pt-5 box-border relative z-10">
+      <div class="grid-cards grid grid-cols-2 gap-[15px] w-[100%] h-[100%] mt-2 lg:max-w-6xl">
+        <div v-for="card in cards" :key="card.titulo" @click="irPara(card.rota)" class="card-item bg-gradient-to-br from-white to-gray-50 rounded-[16px] shadow-[0_8px_16px_rgba(0,0,0,0.1)] flex flex-row items-center cursor-pointer transition-all duration-300 hover:translate-y-[-4px] hover:shadow-[0_12px_24px_rgba(0,0,0,0.15)] text-left p-4 relative overflow-hidden lg:flex-col lg:items-center lg:text-center lg:p-8 lg:min-h-[350px]">
+          
+          <!-- Faixa Lateral Sólida (Escondida no Desktop) -->
+          <div class="absolute left-0 top-0 bottom-0 w-[5px] rounded-l-[16px] lg:hidden" :style="{ backgroundColor: card.borderColor }"></div>
+          
+          <!-- Elementos decorativos de fundo -->
+          <div class="absolute top-[-20px] right-[-20px] w-20 h-20 rounded-full opacity-5" :style="{ backgroundColor: card.borderColor }"></div>
+          <div class="absolute bottom-[-10px] right-[30px] w-12 h-12 rounded-full opacity-5" :style="{ backgroundColor: card.borderColor }"></div>
+          
+          <!-- Container do ícone -->
+          <div class="flex-shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-[18px] flex items-center justify-center ml-1 mr-4 shadow-md z-10 lg:mx-auto lg:mb-6 lg:w-28 lg:h-28" :class="card.bgColor">
+            <component :is="card.iconIsSvg ? 'svg' : 'i'" v-bind="card.iconProps" :class="card.iconClass" :style="{ color: card.borderColor }" />
+          </div>
+          
+          <!-- Conteúdo com Textos Ampliados com Segurança -->
+          <div class="flex-1 min-w-0 z-10 relative left-[2%] lg:left-0 lg:mb-6 lg:w-full">
+            <!-- Título -->
+            <h6 class="card-titulo text-[#1E1B4B] font-['Quicksand'] font-bold !text-[15px] md:!text-lg leading-snug mb-1 relative left-[5px] lg:left-0 lg:text-2xl lg:mb-3">
+              {{ card.titulo }}
+            </h6>
+            <!-- Descrição -->
+            <p class="text-gray-600 !text-[14px] md:!text-[15px] leading-snug line-clamp-2 relative left-[5px] lg:left-0 lg:text-lg lg:line-clamp-none">
+              {{ card.descricao }}
+            </p>
+          </div>
+          
+          <!-- Botão de ação circular (Seta) -->
+          <div class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ml-3 shadow-md transition-transform duration-300 hover:scale-110 z-10 lg:mt-auto lg:ml-0 lg:w-14 lg:h-14" :style="{ backgroundColor: card.borderColor }">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lg:w-8 lg:h-8">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </div>
+        </div>
 
-    <!-- Metade inferior - Ajustada com flex-grow para eliminar margem no fim -->
-    <div class="estruturaInferior flex-grow w-full bg-[#f0f4f8] rounded-t-[40px] flex justify-center items-center p-5 box-border">
-      <div class="grid-cards grid grid-cols-2 gap-[15px] w-full max-w-[600px]">
-        <div v-for="card in cards" :key="card.titulo" @click="irPara(card.rota)" class="card-item bg-white rounded-[20px] shadow-[0_4px_6px_rgba(0,0,0,0.1)] flex flex-col justify-center items-center cursor-pointer transition-transform duration-200 hover:scale-[1.02] hover:bg-[#fffaf0] text-center p-2.5">
-          <component :is="card.iconIsImg ? 'img' : (card.iconIsSvg ? 'svg' : 'i')" v-bind="card.iconProps" :class="card.iconClass" />
-          <h6 class="card-titulo text-[#440d72] font-['Quicksand'] font-bold text-[0.9rem] mt-2">
-            {{ card.titulo }}
-          </h6>
+        <!-- Frase Motivacional Centralizada com Margem Inferior Segura -->
+        <div class="frase-motivacional col-span-2 bg-slate-50 border border-gray-200/60 rounded-2xl p-4 flex items-center justify-center gap-2 shadow-sm text-center mt-3 mb-8 mx-auto w-full max-w-[92%] md:max-w-xl">
+          <i class="fa-solid fa-star text-amber-400 text-sm md:text-base animate-pulse flex-shrink-0"></i>
+          <p class="font-['Quicksand'] font-medium text-gray-600 text-xs md:text-sm tracking-wide m-0">
+            "O conhecimento transforma o mundo. Continue evoluindo com a IAra! ✨"
+          </p>
         </div>
       </div>
     </div>
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   </div>
 </template>
 
 <script setup>
-import { computed, reactive } from 'vue'
+import { computed, reactive, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import BackButton from '../../components/ui/BackButton.vue'
 import { useAuthStore } from '../../stores/auth.js'
 
 const router = useRouter(), authStore = useAuthStore()
 const nomeUsuario = computed(() => authStore.usuario?.nome || 'Visitante')
-
 const modal = reactive({ visible: false })
+
+const windowWidth = ref(0)
+const isMobile = computed(() => windowWidth.value < 640)
+const isTablet = computed(() => windowWidth.value >= 640 && windowWidth.value < 1024)
+
+const updateWindowWidth = () => {
+  if (typeof window !== 'undefined') {
+    windowWidth.value = window.innerWidth
+  }
+}
+
+onMounted(() => {
+  updateWindowWidth()
+  window.addEventListener('resize', updateWindowWidth)
+})
+
+onUnmounted(() => {
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('resize', updateWindowWidth)
+  }
+})
+
+// Adicionado backgroundAttachment: 'scroll' para garantir o movimento fluido com o scroll
+const desktopBackgroundStyle = {
+  backgroundImage: "url('/img/fundo.png')",
+  backgroundSize: 'contain',
+  backgroundPosition: 'center top',
+  backgroundRepeat: 'no-repeat',
+  backgroundAttachment: 'scroll',
+  backgroundColor: '#380075'
+}
+
+const tabletBackgroundStyle = {
+  backgroundImage: "url('/img/fundo.png')",
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  backgroundRepeat: 'no-repeat',
+  backgroundAttachment: 'scroll',
+  backgroundColor: '#380075'
+}
+
+const mobileBackgroundStyle = {
+  backgroundImage: "url('/img/fundo2.jpg')",
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  backgroundRepeat: 'no-repeat',
+  backgroundAttachment: 'scroll',
+  backgroundColor: '#380075'
+}
+
+const backgroundStyle = computed(() => {
+  if (isMobile.value) return mobileBackgroundStyle
+  if (isTablet.value) return tabletBackgroundStyle
+  return desktopBackgroundStyle
+})
 
 const efetuarLogout = () => {
   modal.visible = false
@@ -64,14 +167,55 @@ const efetuarLogout = () => {
 }
 
 const cards = [
-  { titulo: 'Empreender', rota: '/empreender', iconIsImg: true, iconProps: { src: 'https://i.ibb.co/n8kWgnmt/Icon-symbolizing-entrepreneurship-and-innovation.png', alt: 'Empreender' }, iconClass: 'h-10 w-auto' },
-  { titulo: 'Dicas de Inclusão Digital', rota: '/dicas', iconClass: 'fa-regular fa-lightbulb text-[2.5rem] text-[#ff7300]' },
-  { titulo: 'Sala de Aula', rota: '/sala-de-aula', iconClass: 'fa-solid fa-book text-[2.5rem] text-[#ff7300]' },
-  { titulo: 'Iniciar uma Conversa', rota: '/chat', iconIsSvg: true, iconClass: 'w-10 h-10 text-[#ff7300]', iconProps: { viewBox: '0 0 16 16', fill: 'currentColor', innerHTML: '<path d="M14 1a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H4.414A2 2 0 0 0 3 11.586l-2 2V2a1 1 0 0 1 1-1zM2 0a2 2 0 0 0-2 2v12.793a.5.5 0 0 0 .854.353l2.853-2.853A1 1 0 0 1 4.414 12H14a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2z"/><path d="M3 3.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5M3 6a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9A.5.5 0 0 1 3 6m0 2.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5"/>' } }
+  { 
+    titulo: 'Empreender', 
+    descricao: 'Descubra ideias, ferramentas e conteúdos para seus projetos.', 
+    rota: '/empreender', 
+    iconIsSvg: false, 
+    iconClass: 'fa-solid fa-rocket text-4xl md:text-5xl', 
+    borderColor: '#2563EB', 
+    bgColor: 'bg-blue-50' 
+  },
+  { 
+    titulo: 'Dicas de Inclusão Digital', 
+    descricao: 'Acesse dicas e tutoriais para se conectar com o mundo digital.', 
+    rota: '/dicas', 
+    iconIsSvg: false, 
+    iconClass: 'fa-regular fa-lightbulb text-4xl md:text-5xl', 
+    borderColor: '#F97316', 
+    bgColor: 'bg-orange-50' 
+  },
+  { 
+    titulo: 'Sala de Aula', 
+    descricao: 'Acesse seus cursos, matériais e atividades em um só lugar.', 
+    rota: '/sala-de-aula', 
+    iconIsSvg: false, 
+    iconClass: 'fa-solid fa-chalkboard-user text-4xl md:text-5xl', 
+    borderColor: '#7C3AED', 
+    bgColor: 'bg-purple-50' 
+  },
+  { 
+    titulo: 'Iniciar uma Conversa', 
+    descricao: 'Converse com a IAra e descubra possibilidades.', 
+    rota: '/chat', 
+    iconIsSvg: false, 
+    iconClass: 'fa-regular fa-comments text-4xl md:text-5xl', 
+    borderColor: '#22C55E', 
+    bgColor: 'bg-green-50' 
+  }
 ]
 
-const irPara = (rota) => {
+const carregando = ref(false)
+
+const irPara = async (rota) => {
   if (rota === '/empreender' || rota === '/dicas') return
+  
+  if (rota === '/chat') {
+    carregando.value = true
+    await new Promise(resolve => setTimeout(resolve, 2000))
+    carregando.value = false
+  }
+  
   router.push(rota)
 }
 </script>
@@ -82,22 +226,63 @@ const irPara = (rota) => {
   to   { opacity: 1; transform: translateY(0); }
 }
 .animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
-
 .border-aqua { border-color: aqua; }
 .text-aqua   { color: aqua; }
 
+.wave-divider {
+  display: block;
+}
+@media (min-width: 640px) {
+  .wave-divider {
+    display: none;
+  }
+}
+
 /* ── Mobile pequeno (< 640px) ─────────────────────────────────── */
 @media (max-width: 639px) {
-  .textoSaudacao    { font-size: 1.5rem; }
-  .subtextoSaudacao { font-size: 0.9rem; }
+  .textoSaudacao    { font-size: 1.5rem; position:relative; top:10%; }
+  .subtextoSaudacao { font-size: 0.9rem; position:relative; top:10%;}
   .logoIaraMenu {
     height: 38vh;
-    margin-top: -10px;
-    margin-bottom: -60px; 
+    position: relative;
+    top: -50px;
+    margin-bottom: -60px;
   }
-  .grid-cards { gap: 10px; }
-  .card-item  { padding: 8px; min-height: 80px; }
-  .card-titulo { font-size: 0.78rem; }
+  .grid-cards {
+    gap: 12px;
+    grid-template-columns: 1fr !important;
+  }
+  .card-item  {
+    padding: 14px;
+    min-height: auto;
+    width: 92%; 
+    position: relative;
+    left: 4%; 
+  }
+  .frase-motivacional {
+    width: 92% !important;
+    left: 0 !important;
+    margin: 12px auto 32px auto !important;
+    grid-column: span 1 / span 1 !important;
+  }
+  .card-item .w-\[72px\] {
+    width: auto;
+    height: auto;
+  }
+  .card-item .rounded-\[18px\] {
+    border-radius: 16px;
+  }
+  
+  .card-titulo { font-size: inherit; }
+  
+  .card-item .w-10 {
+    width: 32px;
+    height: 32px;
+  }
+  .card-item .w-10 svg {
+    width: 16px;
+    height: 16px;
+  }
 }
 
 /* ── Tablet e Notebook Pequeno (640px – 1023px) ────────────────── */
@@ -108,25 +293,32 @@ const irPara = (rota) => {
     margin-bottom: -100px;
   }
   .grid-cards { 
-    max-width: 500px; 
+    max-width: 680px; 
     grid-template-columns: repeat(2, 1fr); 
   }
 }
 
 /* ── Desktop (≥ 1024px) ───────────────────────────────────────── */
 @media (min-width: 1024px) {
-  .saudacaoContainer { margin-bottom: -60px; } 
+  .saudacaoContainer { position: relative; bottom: 0%; }
   .logoIaraMenu {
     height: 55vh;
-    margin-bottom: -160px; 
+    position: relative;
+    bottom: 10%;
+    left: 0 !important;
+  }
+
+  .extra-menu-img {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
   }
   .grid-cards {
     grid-template-columns: repeat(2, 1fr) !important;
-    grid-template-rows: repeat(2, 1fr) !important;
-    max-width: 800px;
+    max-width: 960px; 
     padding: 20px;
     gap: 25px; 
   }
-  .card-item { height: 200px; }
+  .card-item { height: 185px; } 
 }
 </style>
