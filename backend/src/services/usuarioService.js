@@ -75,6 +75,10 @@ const loginUsuarioService = async (dadosLogin) => {
         if(!comparaSenha){
             throw new Error("email ou senha invalidos")
         }
+        
+        if (usuarioEncontrado.role === 'professor_pendente') {
+            throw new Error("Seu cadastro de professor está em análise. Aguarde a aprovação do administrador.");
+        }
 
         const JWT_SECRET = process.env.JWT_SECRET 
         

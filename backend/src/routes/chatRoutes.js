@@ -13,8 +13,8 @@ import {
 const router = express.Router();
 
 // ─── Rotas do Aluno ──────────────────────────────────────────────────────────
-router.post('/enviar', authMiddleware,turmaMiddleware, enviarMensagemController);
-router.get("/historico", authMiddleware,turmaMiddleware, buscarHistoricoController);
+router.post('/enviar', authMiddleware, turmaMiddleware, enviarMensagemController);
+router.get("/historico", authMiddleware, turmaMiddleware, buscarHistoricoController);
 
 // ─── Rotas Administrativas ───────────────────────────────────────────────────
 // Protegendo com authMiddleware (Se tiver o roleMiddleware, adicione logo depois dele)

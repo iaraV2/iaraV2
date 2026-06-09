@@ -18,17 +18,26 @@ async function enviarEmail({ para, assunto, html }) {
 
 //! Lista todos os professores com cadastro pendente de aprovação
 export const listarSolicitacoesService = async () => {
+    console.log("🔍 [ADMIN] Buscando professores pendentes no banco...");
+    
     const snap = await db.collection('usuarios')
         .where('role', '==', 'professor_pendente')
-        .orderBy('criadoEm', 'asc')
         .get();
 
-    return snap.docs.map(doc => ({
+    console.log(`📋 [ADMIN] Encontrei ${snap.size} professor(es) pendente(s) no Firestore.`);
+
+    const solicitacoes = snap.docs.map(doc => ({
         id:       doc.id,
         nome:     doc.data().nome,
         email:    doc.data().email,
         criadoEm: doc.data().criadoEm,
     }));
+
+    return solicitacoes.sort((a, b) => {
+        const dataA = a.criadoEm?.toDate ? a.criadoEm.toDate() : new Date(0);
+        const dataB = b.criadoEm?.toDate ? b.criadoEm.toDate() : new Date(0);
+        return dataA - dataB;
+    });
 };
 
 

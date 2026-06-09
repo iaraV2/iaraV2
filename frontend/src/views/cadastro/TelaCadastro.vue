@@ -1,19 +1,15 @@
 <template>
-  <!-- h-screen trava a altura; overflow-hidden impede scroll por padrão; scroll-pequeno habilita scroll se a tela for baixa -->
   <div class="h-screen w-full bg-[#420583] flex flex-col items-center py-6 px-4 overflow-hidden relative scroll-pequeno">
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
 
-    <!-- Título -->
     <div class="text-center w-full shrink-0">
       <h1 class="font-['Quicksand'] text-cyan-400 font-light text-3xl md:text-4xl leading-tight relative top-4 md:top-0">Junte-se</h1>
       <h1 class="font-['Quicksand'] text-cyan-400 font-bold text-3xl md:text-4xl leading-tight relative top-2 md:top-0">à Comunidade</h1>
     </div>
 
-    <!-- Conteúdo central (imagem + formulário) -->
     <div class="flex flex-col items-center justify-center w-full max-w-sm flex-grow relative">
       <img src="/img/iara.png" alt="iara" class="lg:w-100 -translate-y-44 transition-transform duration-300 w-80 relative top-10 md:top-0 lg:-top-13 md:w-64 mb-3 drop-shadow-2xl" />
 
-      <!-- FORMULÁRIO -->
       <form @submit.prevent="handleSubmit" class="relative lg:bottom-[21rem] -translate-y-[16.5rem] md:translate-y-0 w-full flex flex-col items-center gap-4">
         <input v-model="nome" type="text" placeholder="Nome Completo" required alt="nome" class="w-70 mx-auto h-13 rounded-full pl-6 pr-4 font-['Quicksand'] text-lg text-black bg-white shadow-md outline-none focus:ring-2 focus:ring-cyan-400 placeholder:font-medium text-center placeholder:text-gray-400" />
         <input v-model="email" type="email" placeholder="Email" required alt="email" class="w-70 mx-auto h-13 rounded-full pl-6 pr-4 font-['Quicksand'] text-lg text-black bg-white shadow-md outline-none focus:ring-2 focus:ring-cyan-400 placeholder:font-medium text-center placeholder:text-gray-400 relative z-10" />
@@ -25,7 +21,6 @@
           </button>
         </div>
 
-        <!-- Seletor de Perfil (Radio Buttons) -->
         <div class="flex items-center justify-center gap-6 w-70 mx-auto py-1">
           <label class="flex items-center gap-2 cursor-pointer group">
             <div class="relative flex items-center justify-center shrink-0">
@@ -54,12 +49,10 @@
       </form>
     </div>
 
-    <!-- Rodapé -->
     <div class="shrink-0 flex justify-center w-full pb-4">
       <img src="/img/anjos.png" alt="anjosDigitais" class="lg:w-40 relative w-32 md:w-36 opacity-80 bottom-55 md:bottom-auto lg:-translate-y-[60%]" />
     </div>
 
-    <!-- Toast Customizado -->
     <div v-if="msg.visible" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-80 bg-black text-white p-4 rounded-lg shadow-lg flex flex-col justify-between h-20">
       <p class="text-center font-medium text-lg">{{ msg.text }}</p>
       <div class="h-1.5 rounded-full transition-all duration-1500 ease-linear" :class="msg.color" :style="{ width: msg.progress + '%' }"></div>
@@ -134,8 +127,8 @@ async function handleSubmit() {
 
 /* DESKTOPS GRANDES */
 @media (min-width: 1200px) {
-  /* Adicionado o 'select' para crescer junto com os inputs */
-  input, select, button[type="submit"], .relative.w-72.mx-auto { width: 400px !important; }
+  /* 🔥 CORREÇÃO: Afetar apenas os inputs de texto/senha, excluindo o 'radio' */
+  input[type="text"], input[type="email"], input[type="password"], button[type="submit"], .relative.w-72.mx-auto { width: 400px !important; }
   .max-w-sm { max-width: 450px !important; }
 }
 
@@ -144,13 +137,11 @@ async function handleSubmit() {
   h1 { font-size: 1.8em !important; bottom: 4rem !important; }
   img[alt="iara"] { width: 17rem !important; position: relative; top: -1rem !important; }
   
-  /* Adicionado o 'select' para ter o mesmo tamanho no notebook */
-  input[alt="nome"], input[placeholder="Email"], select, input[placeholder="Senha"] { width: 17rem !important; height: 2.5rem !important; position: relative; }
+  /* 🔥 CORREÇÃO: Mesma coisa para o notebook, garantir a exclusão do radio */
+  input[type="text"], input[type="email"], input[type="password"] { width: 17rem !important; height: 2.5rem !important; position: relative; }
   
-  /* Recalculando os espaçamentos para caber os 4 campos */
   input[alt="nome"] { top: 4.3rem !important; }
   input[placeholder="Email"] { top: 3.5rem !important; }
-  select { top: 2.7rem !important; }
   input[placeholder="Senha"] { top: 1.9rem !important; left: 4rem !important; }
   
   .relative.w-72.mx-auto button { position: absolute !important; right: 5rem !important; top: 50% !important; transform: translateY(-50%) !important; width: auto !important; height: auto !important; }

@@ -92,11 +92,16 @@ export const buscarTurmasPorTitulo = async (termo) => {
 export const listarTurmasDoProfessor = async (professorId) => {
     const snap = await db.collection(COLECAO)
         .where('professorId', '==', professorId)
-        .orderBy('criadaEm', 'desc')
         .get();
-    return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-};
 
+    const turmas = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    return turmas.sort((a, b) => {
+        const dataA = a.criadaEm?.toDate ? a.criadaEm.toDate() : new Date(0);
+        const dataB = b.criadaEm?.toDate ? b.criadaEm.toDate() : new Date(0);
+        return dataB - dataA; 
+    });
+};
 export const atualizarTurma = async (turmaId, dados) => {
     await db.collection(COLECAO).doc(turmaId).update(dados);
     return { message: 'Turma atualizada com sucesso.' };
