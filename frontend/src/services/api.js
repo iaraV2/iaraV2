@@ -8,11 +8,19 @@ export const api = axios.create({
   },
 })
 
-// ─── Interceptor de REQUISIÇÃO ─────────────────────────────────────────────
 api.interceptors.request.use(
   (config) => {
-    if (config.baseURL?.endsWith('/iara') && config.url?.startsWith('/iara')) {
-      config.url = config.url.replace(/^\/iara/, '')
+    if (config.baseURL?.endsWith('/iara')) {
+      config.baseURL = config.baseURL.replace(/\/iara$/, '')
+    }
+
+    if (config.url && !config.url.startsWith('/iara')) {
+      const formatoComBarra = config.url.startsWith('/') ? config.url : '/' + config.url
+      config.url = '/iara' + formatoComBarra
+    }
+    
+    if (config.url?.startsWith('/iara/iara/')) {
+      config.url = config.url.replace(/^\/iara\/iara\//, '/iara/')
     }
 
     const token = localStorage.getItem('iara_token')
@@ -44,10 +52,6 @@ api.interceptors.response.use(
 
     if (status === 403) {
       console.warn('[IAra] Acesso negado pelo servidor.')
-    }
-
-    if (status >= 500) {
-      console.error('[IAra] Erro interno do servidor:', error.response?.data)
     }
 
     return Promise.reject(error)
