@@ -78,8 +78,17 @@ async function handleSubmit() {
     }
     
   } catch (e) {
-    const msgErro = e.response?.data?.error || e.response?.data?.message || 'Email ou senha incorretos.'
-    toast.error(msgErro)
+    const msgErro = e.response?.data?.erro || e.response?.data?.error || e.response?.data?.message || 'Email ou senha incorretos.'
+    
+    if (msgErro.includes('em análise') || msgErro.includes('administrador')) {
+      toast.warning(msgErro, { 
+        timeout: 20000,
+        closeOnClick: true,
+        pauseOnHover: true 
+      })
+    } else {
+      toast.error(msgErro)
+    }
   } finally { 
     carregando.value = false
   }

@@ -1,5 +1,5 @@
 // frontend/src/router/index.js
-// CORREÇÃO: rota /admin/dashboard agora verifica role além de autenticação
+// CORREÇÃO: Redirecionamento dinâmico baseado em Roles para evitar contaminação de telas
 
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stores/auth.js'
@@ -81,7 +81,7 @@ const routes = [
     component: () => import('../views/admin/AdminDashboard.vue'),
     meta: {
       requerAuth: true,
-      requerRole: 'admin',   // ← nova propriedade: só role 'admin' entra
+      requerRole: 'admin',
       index: 10
     },
   },
@@ -98,33 +98,49 @@ const router = createRouter({
   scrollBehavior: () => ({ top: 0 }),
 })
 
+// Helper dinâmico para descobrir a rota "Home" de cada perfil logado
+const obterRotaPorRole = (role) => {
+  if (role === 'admin') return { name: 'AdminDashboard' }
+  if (role === 'professor') return { name: 'SalaDeAula' }
+  return { name: 'Menu' } // Aluno ou padrão
+}
+
 router.beforeEach((to, _from, next) => {
   const auth = useAuthStore()
 
   const precisaDeAuth    = to.meta.requerAuth === true
   const somenteDeslogado = to.meta.somenteDeslogado === true
   const roleNecessaria   = to.meta.requerRole
+  const roleDoUsuario    = auth.usuario?.role
 
-  // 1. Rota privada sem sessão → Login
+  // 1. Rota privada sem sessão → Força Login
   if (precisaDeAuth && !auth.estaAutenticado) {
     return next({ name: 'Login', query: { redirect: to.fullPath } })
   }
 
-  // 2. Rota com role específica → verifica role do token
-  //    Lê direto do token decodificado para não depender de chamada extra ao backend
-  if (roleNecessaria && auth.estaAutenticado) {
-    const roleDoUsuario = auth.usuario?.role
-
-    if (roleDoUsuario !== roleNecessaria) {
-      // Aluno/professor que tentou acessar /admin/dashboard → vai para o menu deles
+  // Se o utilizador já estiver autenticado, aplicamos as travas de segurança
+  if (auth.estaAutenticado) {
+    
+    // 2. Rota com role específica → Se não for a dele, joga-o para a sua devida Home
+    if (roleNecessaria && roleDoUsuario !== roleNecessaria) {
       console.warn(`[Router] Acesso negado à rota ${to.path}: role "${roleDoUsuario}" não tem permissão.`)
-      return next({ name: 'Menu' })
+      return next(obterRotaPorRole(roleDoUsuario))
+    }
+
+    // 3. Proteção para o botão "Voltar": Impede o Admin de cair em telas de Aluno (/menu, /chat) por engano
+    if (roleDoUsuario === 'admin' && !to.path.startsWith('/admin') && to.path !== '/') {
+      return next({ name: 'AdminDashboard' })
+    }
+
+    // 4. Impede o Professor de navegar acidentalmente para o menu exclusivo do aluno
+    if (roleDoUsuario === 'professor' && to.path === '/menu') {
+      return next({ name: 'SalaDeAula' })
     }
   }
 
-  // 3. Rota só para deslogados (login, cadastro) com sessão ativa → Menu
+  // 5. Rota exclusiva para deslogados (login, cadastro) com sessão ativa → Manda para a Home correspondente
   if (somenteDeslogado && auth.estaAutenticado) {
-    return next({ name: 'Menu' })
+    return next(obterRotaPorRole(roleDoUsuario))
   }
 
   next()

@@ -1,22 +1,44 @@
-# Etapa 1: build da aplicação
-FROM node:20-alpine AS build
+
+
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 COPY . .
+
+# Com o proxy do Nginx, o frontend faz chamadas para /iara/ (relativo à
+# própria origem). Não depende mais de VITE_API_URL em build time.
+# Se quiser sobrescrever (ex: outro domínio), defina VITE_API_URL no Railway.
+ARG VITE_API_URL=/iara
+ENV VITE_API_URL=$VITE_API_URL
+
 RUN npm run build
 
-# Etapa 2: servir com Nginx
-FROM nginx:alpine
 
-# Copia a configuração personalizada do Nginx
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# ── Stage 2: Nginx ─────────────────────────────────────────────────────────
+FROM nginx:alpine AS runner
 
-COPY --from=build /app/dist /usr/share/nginx/html
+# Remove a config padrão do Nginx
+RUN rm /etc/nginx/conf.d/default.conf
 
-EXPOSE 80
+# Copia nossa config com o proxy
+COPY nginx.conf /etc/nginx/conf.d/app.conf.template
 
-CMD ["nginx", "-g", "daemon off;"]
+# Copia os arquivos do build do Vue
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Script de entrypoint: substitui BACKEND_PLACEHOLDER pela URL real do backend
+# (definida em BACKEND_URL no Railway) e inicia o Nginx
+RUN printf '#!/bin/sh\n\
+BACKEND_URL="${BACKEND_URL:-http://localhost:3000}"\n\
+sed "s|BACKEND_PLACEHOLDER|$BACKEND_URL|g" /etc/nginx/conf.d/app.conf.template > /etc/nginx/conf.d/default.conf\n\
+echo "[startup] Proxy /iara/ → $BACKEND_URL"\n\
+exec nginx -g "daemon off;"\n' > /docker-entrypoint-custom.sh \
+&& chmod +x /docker-entrypoint-custom.sh
+
+EXPOSE 8080
+
+CMD ["/docker-entrypoint-custom.sh"]

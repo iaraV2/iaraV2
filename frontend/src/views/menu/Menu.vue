@@ -1,6 +1,5 @@
 <template>
   <div class="menu-container w-full h-full flex flex-col bg-[#380075] overflow-y-auto" :style="backgroundStyle">
-    <!-- Loading overlay -->
     <div v-if="carregando" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[3000]">
       <div class="flex flex-col items-center gap-4">
         <div class="w-12 h-12 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
@@ -11,7 +10,6 @@
       button-class="fixed top-12 left-5 z-[1000] w-10 h-10 flex items-center justify-center bg-white/10 backdrop-blur-md border border-white/15 text-white rounded-full cursor-pointer transition-all duration-300 hover:bg-cyan-400 hover:border-cyan-400 hover:text-[#420583] hover:scale-105 active:scale-95 btn-voltar-hover"
       @click="modal.visible = true"
     />
-    <!-- Modal Reativo Customizado -->
     <div v-if="modal.visible" class="fixed inset-0 bg-black/60 flex items-center justify-center z-[2000] backdrop-blur-sm animate-fadeIn">
       <div class="bg-white rounded-3xl p-8 w-85 h-22 shadow-2xl text-center">
         <h3 class="font-['Quicksand'] font-bold text-[#420583] text-2xl mb-2">Sair da conta?</h3>
@@ -22,7 +20,6 @@
         </div>
       </div>
     </div>
-    <!-- Metade superior -->
     <div class="metadeSuperior flex-shrink-0 min-h-[45%] w-full flex flex-col items-center justify-center relative overflow-visible">
       <div class="saudacaoContainer text-center z-10 animate-fadeIn">
         <h1 class="textoSaudacao font-['Quicksand'] text-white font-light text-[2rem] m-0">
@@ -39,58 +36,51 @@
         <img src="/img/beca.png" alt="beca" class="extra-menu-img w-[26%] relative bottom-[4.3rem] right-[4rem] transform rotate-22 h-auto object-contain drop-shadow-[0_0_10px_rgba(0,0,0,0.3)]" />
         <img src="/img/livro.png" alt="livro" class="extra-menu-img w-[26%] relative top-[2.5rem] right-[11.5rem] transform rotate-22 h-auto object-contain drop-shadow-[0_0_10px_rgba(0,0,0,0.3)]" />
       </div>      
-      <!-- Wave Divider -->
       <div class="absolute bottom-[-10px] left-0 w-full overflow-hidden leading-[0] z-0 wave-divider">
         <svg viewBox="0 0 1200 120" preserveAspectRatio="none" class="relative block w-full h-[70px] sm:h-[90px] md:h-[120px]" fill="#f0f4f8">
           <path d="M0,60C100,10,200,110,300,60C400,10,500,110,600,60C700,10,800,110,900,60C1000,10,1100,110,1200,60V120H0V60Z"></path>
         </svg>
       </div>
     </div>
-    <!-- Metade inferior -->
-    <div class="estruturaInferior flex-grow w-full bg-[#f0f4f8] flex justify-center items-start p-5 pt-2 sm:pt-5 box-border relative z-10">
-      <div class="grid-cards grid grid-cols-2 gap-[15px] w-[100%] h-[100%] mt-2 lg:max-w-6xl">
-        <div v-for="card in cards" :key="card.titulo" @click="irPara(card.rota)" class="card-item bg-gradient-to-br from-white to-gray-50 rounded-[16px] shadow-[0_8px_16px_rgba(0,0,0,0.1)] flex flex-row items-center cursor-pointer transition-all duration-300 hover:translate-y-[-4px] hover:shadow-[0_12px_24px_rgba(0,0,0,0.15)] text-left p-4 relative overflow-hidden lg:flex-col lg:items-center lg:text-center lg:p-8 lg:min-h-[350px]">
+
+    <div class="estruturaInferior flex-grow w-full bg-[#f0f4f8] flex flex-col items-center justify-start p-5 pt-2 sm:pt-5 box-border relative z-10">
+      
+      <div class="grid-cards grid grid-cols-1 md:grid-cols-2 gap-[15px] w-full max-w-4xl mt-2">
+        <div v-for="card in cards" :key="card.titulo" @click="irPara(card.rota)" class="card-item bg-gradient-to-br from-white to-gray-50 rounded-[16px] shadow-[0_8px_16px_rgba(0,0,0,0.1)] flex flex-row items-center cursor-pointer transition-all duration-300 hover:translate-y-[-4px] hover:shadow-[0_12px_24px_rgba(0,0,0,0.15)] text-left p-4 relative overflow-hidden lg:flex-col lg:items-center lg:text-center lg:p-5 lg:h-[210px]">
           
-          <!-- Faixa Lateral Sólida (Escondida no Desktop) -->
           <div class="absolute left-0 top-0 bottom-0 w-[5px] rounded-l-[16px] lg:hidden" :style="{ backgroundColor: card.borderColor }"></div>
           
-          <!-- Elementos decorativos de fundo -->
           <div class="absolute top-[-20px] right-[-20px] w-20 h-20 rounded-full opacity-5" :style="{ backgroundColor: card.borderColor }"></div>
           <div class="absolute bottom-[-10px] right-[30px] w-12 h-12 rounded-full opacity-5" :style="{ backgroundColor: card.borderColor }"></div>
           
-          <!-- Container do ícone -->
-          <div class="flex-shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-[18px] flex items-center justify-center ml-1 mr-4 shadow-md z-10 lg:mx-auto lg:mb-6 lg:w-28 lg:h-28" :class="card.bgColor">
-            <component :is="card.iconIsSvg ? 'svg' : 'i'" v-bind="card.iconProps" :class="card.iconClass" :style="{ color: card.borderColor }" />
+          <div class="flex-shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-[18px] flex items-center justify-center ml-1 mr-4 shadow-md z-10 lg:mx-auto lg:mb-3 lg:w-16 lg:h-16" :class="card.bgColor">
+            <component :is="card.iconIsSvg ? 'svg' : 'i'" v-bind="card.iconProps" :class="[card.iconClass, 'lg:!text-[28px]']" :style="{ color: card.borderColor }" />
           </div>
           
-          <!-- Conteúdo com Textos Ampliados com Segurança -->
-          <div class="flex-1 min-w-0 z-10 relative left-[2%] lg:left-0 lg:mb-6 lg:w-full">
-            <!-- Título -->
-            <h6 class="card-titulo text-[#1E1B4B] font-['Quicksand'] font-bold !text-[15px] md:!text-lg leading-snug mb-1 relative left-[5px] lg:left-0 lg:text-2xl lg:mb-3">
+          <div class="flex-1 min-w-0 z-10 relative left-[2%] lg:left-0 lg:mb-2 lg:w-full">
+            <h6 class="card-titulo text-[#1E1B4B] font-['Quicksand'] font-bold !text-[15px] md:!text-lg leading-snug mb-1 relative left-[5px] lg:left-0 lg:text-lg lg:mb-1">
               {{ card.titulo }}
             </h6>
-            <!-- Descrição -->
-            <p class="text-gray-600 !text-[14px] md:!text-[15px] leading-snug line-clamp-2 relative left-[5px] lg:left-0 lg:text-lg lg:line-clamp-none">
+            <p class="text-gray-600 !text-[14px] md:!text-[15px] leading-snug line-clamp-2 relative left-[5px] lg:left-0 lg:text-sm lg:line-clamp-none lg:px-4">
               {{ card.descricao }}
             </p>
           </div>
           
-          <!-- Botão de ação circular (Seta) -->
-          <div class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ml-3 shadow-md transition-transform duration-300 hover:scale-110 z-10 lg:mt-auto lg:ml-0 lg:w-14 lg:h-14" :style="{ backgroundColor: card.borderColor }">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lg:w-8 lg:h-8">
+          <div class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ml-3 shadow-md transition-transform duration-300 hover:scale-110 z-10 lg:mt-auto lg:ml-0 lg:w-10 lg:h-10" :style="{ backgroundColor: card.borderColor }">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lg:w-5 lg:h-5">
               <path d="M5 12h14M12 5l7 7-7 7"/>
             </svg>
           </div>
         </div>
-
-        <!-- Frase Motivacional Centralizada com Margem Inferior Segura -->
-        <div class="frase-motivacional col-span-2 bg-slate-50 border border-gray-200/60 rounded-2xl p-4 flex items-center justify-center gap-2 shadow-sm text-center mt-3 mb-8 mx-auto w-full max-w-[92%] md:max-w-xl">
-          <i class="fa-solid fa-star text-amber-400 text-sm md:text-base animate-pulse flex-shrink-0"></i>
-          <p class="font-['Quicksand'] font-medium text-gray-600 text-xs md:text-sm tracking-wide m-0">
-            "O conhecimento transforma o mundo. Continue evoluindo com a IAra! ✨"
-          </p>
-        </div>
       </div>
+
+      <div class="bg-slate-50 border border-gray-200/60 rounded-2xl p-4 flex items-center justify-center gap-2 shadow-sm text-center mt-6 mb-8 w-full max-w-[92%] md:max-w-2xl">
+        <i class="fa-solid fa-star text-amber-400 text-sm md:text-base animate-pulse flex-shrink-0"></i>
+        <p class="font-['Quicksand'] font-medium text-gray-600 text-xs md:text-sm tracking-wide m-0">
+          "O conhecimento transforma o mundo. Continue evoluindo com a IAra! ✨"
+        </p>
+      </div>
+
     </div>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   </div>
@@ -127,7 +117,6 @@ onUnmounted(() => {
   }
 })
 
-// Adicionado backgroundAttachment: 'scroll' para garantir o movimento fluido com o scroll
 const desktopBackgroundStyle = {
   backgroundImage: "url('/img/fundo.png')",
   backgroundSize: 'contain',
@@ -248,22 +237,12 @@ const irPara = async (rota) => {
     top: -50px;
     margin-bottom: -60px;
   }
-  .grid-cards {
-    gap: 12px;
-    grid-template-columns: 1fr !important;
-  }
   .card-item  {
     padding: 14px;
     min-height: auto;
     width: 92%; 
     position: relative;
     left: 4%; 
-  }
-  .frase-motivacional {
-    width: 92% !important;
-    left: 0 !important;
-    margin: 12px auto 32px auto !important;
-    grid-column: span 1 / span 1 !important;
   }
   .card-item .w-\[72px\] {
     width: auto;
@@ -294,7 +273,6 @@ const irPara = async (rota) => {
   }
   .grid-cards { 
     max-width: 680px; 
-    grid-template-columns: repeat(2, 1fr); 
   }
 }
 
@@ -314,11 +292,8 @@ const irPara = async (rota) => {
     opacity: 0 !important;
   }
   .grid-cards {
-    grid-template-columns: repeat(2, 1fr) !important;
-    max-width: 960px; 
     padding: 20px;
     gap: 25px; 
   }
-  .card-item { height: 185px; } 
 }
 </style>
