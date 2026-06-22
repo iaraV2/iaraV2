@@ -1,5 +1,5 @@
 <template>
-  <div class="chat-page-container w-full h-full bg-[#380075] flex items-center justify-center font-['Quicksand'] overflow-hidden">
+  <div class="chat-page-container fixed top-0 left-0 w-screen h-screen bg-[#380075] z-[9999] flex items-center justify-center font-['Quicksand'] overflow-hidden">
     <div class="chat-window w-[95%] max-w-[1000px] h-[90vh] bg-[rgba(20,0,60,0.75)] backdrop-blur-[16px] border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] rounded-[25px] flex flex-col relative overflow-hidden">
 
       <!-- Header -->

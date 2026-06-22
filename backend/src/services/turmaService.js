@@ -9,7 +9,6 @@ import {
     adicionarConteudo, listarConteudos, atualizarConteudo, deletarConteudo,
     salvarPdf, listarPdfs, buscarPdfCompleto, deletarPdf,
 } from '../models/turmaModel.js';
-import { uploadArquivoParaDrive } from './driveService.js';
 import crypto from 'crypto';
 
 
@@ -328,22 +327,6 @@ export const uploadPdfService = async (professorId, turmaId, conteudoId, arquivo
         base64,
         tamanho: arquivo.size,
     });
-
-    // --- INTEGRAÇÃO GOOGLE DRIVE ---
-    // Copia o arquivo para o Google Drive para que a IAra possa processar
-    const folderId = process.env.DRIVE_FOLDER_ID || '108BCKchtHnFuVZKFXUjlDZi6fVxs_5oD';
-    
-    try {
-        const driveFileId = await uploadArquivoParaDrive(arquivo.buffer, arquivo.originalname, folderId);
-        if (driveFileId) {
-            console.log(`📂 [SYNC] PDF "${arquivo.originalname}" sincronizado com Drive. ID: ${driveFileId}`);
-        } else {
-            console.warn(`⚠️ [SYNC] Falha ao sincronizar "${arquivo.originalname}" com Drive (ID não retornado).`);
-        }
-    } catch (err) {
-        console.error(`❌ [SYNC] Erro crítico na sincronização com Drive para "${arquivo.originalname}":`, err);
-    }
-
     return { id, nome: arquivo.originalname, tamanho: arquivo.size, mensagem: 'PDF enviado com sucesso!' };
 };
 

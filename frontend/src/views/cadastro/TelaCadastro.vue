@@ -17,31 +17,15 @@
       <form @submit.prevent="handleSubmit" class="relative lg:bottom-[21rem] -translate-y-[16.5rem] md:translate-y-0 w-full flex flex-col items-center gap-4">
         <input v-model="nome" type="text" placeholder="Nome Completo" required alt="nome" class="w-70 mx-auto h-13 rounded-full pl-6 pr-4 font-['Quicksand'] text-lg text-black bg-white shadow-md outline-none focus:ring-2 focus:ring-cyan-400 placeholder:font-medium text-center placeholder:text-gray-400" />
         <input v-model="email" type="email" placeholder="Email" required alt="email" class="w-70 mx-auto h-13 rounded-full pl-6 pr-4 font-['Quicksand'] text-lg text-black bg-white shadow-md outline-none focus:ring-2 focus:ring-cyan-400 placeholder:font-medium text-center placeholder:text-gray-400 relative z-10" />
-        
+        <select v-model="role" class="w-70 mx-auto h-13 rounded-full pl-6 pr-10 font-['Quicksand'] text-lg text-gray-500 text-center bg-white shadow-md outline-none focus:ring-2 focus:ring-cyan-400 relative z-10 cursor-pointer">
+          <option value="aluno">Sou Aluno</option>
+          <option value="professor">Sou Professor</option>
+        </select>
         <div class="relative w-72 mx-auto">
           <input v-model="senha" :type="mostrarSenha ? 'text' : 'password'" placeholder="Senha" required alt="senha" class="w-full h-13 rounded-full pl-6 pr-12 font-['Quicksand'] text-lg text-black bg-white shadow-md outline-none focus:ring-2 focus:ring-cyan-400 placeholder:font-medium text-center placeholder:text-gray-400" />
           <button type="button" @click="mostrarSenha = !mostrarSenha" alt="mostrar_senha" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#e25300] transition-colors">
             <ToggleSenhaIcon :visivel="mostrarSenha" />
           </button>
-        </div>
-
-        <!-- Seletor de Perfil (Radio Buttons) -->
-        <div class="flex items-center justify-center gap-6 w-70 mx-auto py-1">
-          <label class="flex items-center gap-2 cursor-pointer group">
-            <div class="relative flex items-center justify-center shrink-0">
-              <input type="radio" v-model="role" value="professor" name="userRole" class="peer appearance-none w-5 h-5 border-2 border-white rounded-full checked:border-cyan-400 transition-all cursor-pointer lg:w-6 lg:h-6" required>
-              <div class="absolute w-3 h-3 bg-cyan-400 rounded-full scale-0 peer-checked:scale-100 transition-transform duration-200 lg:w-4 lg:h-4"></div>
-            </div>
-            <span class="text-white font-['Quicksand'] text-base md:text-lg whitespace-nowrap">Professor</span>
-          </label>
-
-          <label class="flex items-center gap-2 cursor-pointer group">
-            <div class="relative flex items-center justify-center shrink-0">
-              <input type="radio" v-model="role" value="aluno" name="userRole" class="peer appearance-none w-5 h-5 border-2 border-white rounded-full checked:border-cyan-400 transition-all cursor-pointer lg:w-6 lg:h-6" required>
-              <div class="absolute w-3 h-3 bg-cyan-400 rounded-full scale-0 peer-checked:scale-100 transition-transform duration-200 lg:w-4 lg:h-4"></div>
-            </div>
-            <span class="text-white font-['Quicksand'] text-base md:text-lg whitespace-nowrap">Aluno</span>
-          </label>
         </div>
 
         <button type="submit" :disabled="carregando" alt="cadastrar" class="w-72 mx-auto h-13 mt-2 rounded-full bg-[#e25300] hover:bg-[#ff7b00] text-white font-['Quicksand'] font-bold text-lg transition-all duration-200 disabled:opacity-50">
