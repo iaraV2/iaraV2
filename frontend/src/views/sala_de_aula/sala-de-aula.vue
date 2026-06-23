@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full h-full flex flex-col items-center py-6 px-6 overflow-y-auto font-['Quicksand'] hide-scrollbar relative bg-[#380075]">
+  <div class="w-full h-full flex flex-col items-center py-6 px-6 overflow-y-auto overflow-x-hidden font-['Quicksand'] hide-scrollbar relative bg-[#380075] bg-fundo-default">
     <!-- Abstract shapes -->
     <div class="absolute top-20 left-10 w-64 h-64 bg-cyan-400/10 rounded-full blur-3xl pointer-events-none"></div>
     <div class="absolute bottom-40 right-10 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
@@ -12,10 +12,14 @@
     <div class="absolute top-60 left-5 w-8 h-8 sm:top-80 sm:left-16 sm:w-9 sm:h-9 rounded-full opacity-12 z-0" style=" background-color: #7a3cae;"></div>
   
 
-    <BackButton
-      button-class="fixed top-8 left-5 z-[1000] w-10 h-10 flex items-center justify-center bg-white/10 backdrop-blur-md border border-white/15 text-white rounded-full cursor-pointer transition-all duration-300 hover:bg-cyan-400 hover:border-cyan-400 hover:text-[#420583] hover:scale-105 active:scale-95 btn-voltar-hover"
+    <button
+      class="fixed top-8 left-5 z-[1000] w-10 h-10 flex items-center justify-center bg-white/10 backdrop-blur-md border border-white/15 text-white rounded-full cursor-pointer transition-all duration-300 hover:bg-cyan-400 hover:border-cyan-400 hover:text-[#420583] hover:scale-105 active:scale-95 btn-voltar-hover"
       @click="router.push('/menu')"
-    />
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+        <path d="M15 18l-6-6 6-6"/>
+      </svg>
+    </button>
 
     <div class="w-full text-center mt-16 mb-8 shrink-0 relative">
       <button v-if="isProfessor" @click="abrirModalNovaTurma"
@@ -158,7 +162,6 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
-import BackButton  from '../../components/ui/BackButton.vue'
 import FooterAnjos from '../../components/sala/FooterAnjos.vue'
 import SalaModals  from '../../components/sala/SalaModals.vue'
 import SalaBottomNav from '../../components/sala/SalaBottomNav.vue'
@@ -550,3 +553,36 @@ function handlePdfUpload(event) {
   novaAula.value.pdfs = Array.from(event.target.files)
 }
 </script>
+
+<style scoped>
+/* CSS NATIVO ANTI-BUG DE REFRESH: Aplica a imagem imediatamente via Media Queries do navegador */
+.bg-fundo-default {
+  background-color: #380075;
+  background-repeat: no-repeat;
+  background-attachment: scroll;
+}
+
+@media (max-width: 639px) {
+  .bg-fundo-default {
+    background-image: url('/img/fundo2.jpg');
+    background-size: cover;
+    background-position: center;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  .bg-fundo-default {
+    background-image: url('/img/fundo.png');
+    background-size: cover;
+    background-position: center;
+  }
+}
+
+@media (min-width: 1024px) {
+  .bg-fundo-default {
+    background-image: url('/img/fundo.png');
+    background-size: contain;
+    background-position: center top;
+  }
+}
+</style>

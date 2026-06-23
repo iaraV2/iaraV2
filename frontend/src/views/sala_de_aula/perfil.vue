@@ -14,18 +14,18 @@
       @click="router.back()"
     />
 
-    <div class="mt-16 mb-4 flex flex-col items-center">
+    <div class="mt-16 mb-4 flex flex-col items-center relative top-[3%]">
       <div class="relative">
         <div
           class="w-32 h-32 rounded-full border-4 border-cyan-400 overflow-hidden bg-[#1a064e] flex items-center justify-center cursor-pointer shadow-xl z-10 relative"
           @click="abrirOpcoes"
         >
-          <img v-if="fotoPerfil" :src="fotoPerfil" alt="Foto de perfil" class="w-full h-full object-cover" />
+          <img v-if="fotoPerfil" :src="fotoPerfil" alt="Foto de perfil" class="w-full h-full object-cover " />
           <span v-else class="text-5xl">👤</span>
         </div>
         <button
           @click="abrirOpcoes"
-          class="absolute bottom-0 right-0 z-20 bg-cyan-400 text-[#420583] w-10 h-10 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform cursor-pointer"
+          class="absolute bottom-0 right-0 z-20 bg-cyan-400 text-[#420583] w-10 h-10 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform cursor-pointer "
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -37,7 +37,7 @@
       </div>
     </div>
 
-    <div v-if="mostrarOpcoes" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[3000] p-4" @click.self="mostrarOpcoes = false">
+    <div v-if="mostrarOpcoes" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[3000] p-4 " @click.self="mostrarOpcoes = false">
       <div class="bg-[#2a085c] border border-white/10 rounded-[28px] p-6 w-full max-w-xs shadow-2xl flex flex-col items-center gap-4 text-center">
         <h3 class="font-bold text-lg text-white">O que deseja fazer?</h3>
         <div class="w-full flex flex-col gap-2 mt-2">
@@ -59,7 +59,7 @@
       </div>
     </div>
 
-    <div class="w-[85%] max-w-lg mt-4 mb-6">
+    <div class="w-[80%] max-w-lg mt-4 mb-6 relative top-[5%]">
       <div class="bg-white/10 backdrop-blur-md rounded-[20px] p-6 border border-white/20 shadow-lg">
         <div class="text-center flex flex-col items-center">
           <h2 class="text-xl font-bold text-white mb-1">{{ nomeUsuario || 'Seu Nome' }}</h2>
@@ -72,7 +72,7 @@
       </div>
     </div>
 
-    <div class="w-[85%] max-w-lg mt-auto mb-4 z-10">
+    <!-- <div class="w-[85%] max-w-lg mt-auto mb-4 z-10 relative top-[50%]">
       <button 
         type="button"
         @click="mostrarModalSair = true"
@@ -83,7 +83,7 @@
         </svg>
         SAIR DO SISTEMA
       </button>
-    </div>
+    </div> -->
 
     <div
       v-if="mostrarModalSair"

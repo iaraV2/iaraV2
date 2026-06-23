@@ -133,9 +133,7 @@ router.beforeEach((to, _from, next) => {
     }
 
     // 4. Impede o Professor de navegar acidentalmente para o menu exclusivo do aluno
-    if (roleDoUsuario === 'professor' && to.path === '/menu') {
-      return next({ name: 'SalaDeAula' })
-    }
+    // Removido para permitir que professores acessem o menu quando necessário
   }
 
   // 5. Rota exclusiva para deslogados (login, cadastro) com sessão ativa → Manda para a Home correspondente

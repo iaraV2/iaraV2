@@ -205,7 +205,7 @@
     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[3000] p-4"
     @click.self="$emit('fechar-modal-busca')"
   >
-    <div class="bg-[#2a085c] border border-white/10 rounded-[28px] p-6 w-[90%] max-w-lg shadow-2xl flex flex-col gap-4 max-h-[90%] overflow-y-auto relative bottom-[10%]">
+    <div class="bg-[#2a085c] border border-white/10 rounded-[28px] p-6 w-[90%] max-w-lg shadow-2xl flex flex-col gap-4 max-h-[90%] overflow-y-auto overflow-x-hidden relative bottom-[10%]">
       <h3 class="font-bold text-xl text-white text-center relative top-[7px]">Buscar Sala de Aula</h3>
       
       <div class="relative flex items-center">
@@ -216,7 +216,7 @@
           class="w-[90%] bg-white/10 border border-white/15 rounded-xl p-3 pr-10 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400 relative left-[5%] top-[5px]"
           placeholder="Digite o título da sala..."
         >
-        <button @click="$emit('buscar-titulo')" class="absolute right-3 text-white/60 hover:text-cyan-400 transition-colors">
+        <button @click="$emit('buscar-titulo')" class="absolute right-5 text-white/60 hover:text-cyan-400 transition-colors">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5 relative top-[5px] right-[11px]"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         </button>
       </div>
@@ -225,7 +225,7 @@
         <div class="w-6 h-6 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
       </div>
 
-      <div v-else class="flex flex-col gap-2 overflow-y-auto max-h-60 hide-scrollbar">
+      <div v-else class="flex flex-col gap-2 overflow-y-auto overflow-x-hidden max-h-60 hide-scrollbar">
         <div v-for="turma in resultadosBusca" :key="turma.id"
           class="flex items-center justify-between p-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors w-[89%] relative left-5">
           <div class="flex items-center gap-3">

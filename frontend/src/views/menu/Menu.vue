@@ -1,5 +1,6 @@
 <template>
-  <div class="menu-container w-full h-full flex flex-col bg-[#380075] overflow-y-auto" :style="backgroundStyle">
+  <!-- Adicionada a classe global 'bg-fundo-default' para segurar o fundo antes do Vue processar o JS -->
+  <div class="menu-container w-full h-full flex flex-col bg-[#380075] bg-fundo-default overflow-y-auto" :style="backgroundStyle">
     <div v-if="carregando" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[3000]">
       <div class="flex flex-col items-center gap-4">
         <div class="w-12 h-12 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
@@ -20,7 +21,7 @@
         </div>
       </div>
     </div>
-    <div class="metadeSuperior flex-shrink-0 min-h-[45%] w-full flex flex-col items-center justify-center relative overflow-visible">
+    <div class="metadeSuperior flex-shrink-0 min-h-[45%] w-full flex flex-col items-center justify-center relative overflow-visible lg:top-[2%]">
       <div class="saudacaoContainer text-center z-10 animate-fadeIn">
         <h1 class="textoSaudacao font-['Quicksand'] text-white font-light text-[2rem] m-0">
           Olá, <span class="nomeDestaque text-aqua font-bold capitalize">{{ nomeUsuario }}</span>!👋
@@ -32,7 +33,7 @@
       <div class="flex items-center justify-center gap-4 relative z-[5]">
         <img src="/img/foguete2.png" alt="Foguete" class="extra-menu-img w-[50%] relative bottom-[4rem] left-[5.7rem] transform rotate-22 h-auto object-contain drop-shadow-[0_0_10px_rgba(0,0,0,0.3)]" />
         <img src="/img/lampada.png" alt="lampada" class="extra-menu-img w-[18%] relative top-[2rem] left-[0.5rem] transform -rotate-12 h-auto object-contain drop-shadow-[0_0_10px_rgba(0,0,0,0.3)]" />
-        <img src="/img/iara.png" alt="Logo IAra" class="logoIaraMenu w-56 -left-[1.9rem] h-auto object-contain drop-shadow-[0_0_10px_rgba(0,0,0,0.3)] relative z-[5]" />
+        <img src="/img/iara.png" alt="Logo IAra" class="logoIaraMenu w-56 md:w-[24rem] lg:w-[28rem] -left-[1.9rem] h-auto object-contain drop-shadow-[0_0_10px_rgba(0,0,0,0.3)] relative z-[100]" />
         <img src="/img/beca.png" alt="beca" class="extra-menu-img w-[26%] relative bottom-[4.3rem] right-[4rem] transform rotate-22 h-auto object-contain drop-shadow-[0_0_10px_rgba(0,0,0,0.3)]" />
         <img src="/img/livro.png" alt="livro" class="extra-menu-img w-[26%] relative top-[2.5rem] right-[11.5rem] transform rotate-22 h-auto object-contain drop-shadow-[0_0_10px_rgba(0,0,0,0.3)]" />
       </div>      
@@ -43,38 +44,46 @@
       </div>
     </div>
 
-    <div class="estruturaInferior flex-grow w-full bg-[#f0f4f8] flex flex-col items-center justify-start p-5 pt-2 sm:pt-5 box-border relative z-10">
+    <div class="estruturaInferior flex-grow w-full bg-[#f0f4f8] flex flex-col items-center justify-start p-5 pt-2 sm:pt-5 pb-20 box-border relative z-10">
       
-      <div class="grid-cards grid grid-cols-1 md:grid-cols-2 gap-[15px] w-full max-w-4xl mt-2">
-        <div v-for="card in cards" :key="card.titulo" @click="irPara(card.rota)" class="card-item bg-gradient-to-br from-white to-gray-50 rounded-[16px] shadow-[0_8px_16px_rgba(0,0,0,0.1)] flex flex-row items-center cursor-pointer transition-all duration-300 hover:translate-y-[-4px] hover:shadow-[0_12px_24px_rgba(0,0,0,0.15)] text-left p-4 relative overflow-hidden lg:flex-col lg:items-center lg:text-center lg:p-5 lg:h-[210px]">
+      <div class="grid-cards grid grid-cols-1 md:grid-cols-2 gap-[15px] md:gap-[24px] w-full max-w-5xl mt-2">
+        
+        <div 
+          v-for="card in cards" 
+          :key="card.titulo" 
+          @click="irPara(card.rota)" 
+          class="card-item bg-gradient-to-br from-white to-gray-50 rounded-[16px] md:rounded-[24px] shadow-[0_8px_16px_rgba(0,0,0,0.1)] md:shadow-[0_10px_30px_rgba(0,0,0,0.04)] flex flex-row items-center cursor-pointer transition-all duration-300 hover:translate-y-[-4px] md:hover:translate-y-[-6px] hover:shadow-[0_12px_24px_rgba(0,0,0,0.15)] md:hover:shadow-[0_20px_40px_rgba(0,0,0,0.08)] text-left p-4 relative overflow-hidden md:flex-col md:items-center md:text-center md:p-6 lg:p-8 md:justify-between md:h-[280px] lg:h-[280px]"
+        >  
+          <div class="absolute left-0 top-0 bottom-0 w-[5px] rounded-l-[16px] md:hidden" :style="{ backgroundColor: card.borderColor }"></div>
           
-          <div class="absolute left-0 top-0 bottom-0 w-[5px] rounded-l-[16px] lg:hidden" :style="{ backgroundColor: card.borderColor }"></div>
+          <div class="hidden md:block absolute top-[-20px] right-[-20px] w-32 h-32 rounded-full opacity-5" :style="{ backgroundColor: card.borderColor }"></div>
+          <div class="hidden md:block absolute bottom-[-15px] left-[-15px] w-24 h-24 rounded-full opacity-5" :style="{ backgroundColor: card.borderColor }"></div>
           
-          <div class="absolute top-[-20px] right-[-20px] w-20 h-20 rounded-full opacity-5" :style="{ backgroundColor: card.borderColor }"></div>
-          <div class="absolute bottom-[-10px] right-[30px] w-12 h-12 rounded-full opacity-5" :style="{ backgroundColor: card.borderColor }"></div>
-          
-          <div class="flex-shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-[18px] flex items-center justify-center ml-1 mr-4 shadow-md z-10 lg:mx-auto lg:mb-3 lg:w-16 lg:h-16" :class="card.bgColor">
-            <component :is="card.iconIsSvg ? 'svg' : 'i'" v-bind="card.iconProps" :class="[card.iconClass, 'lg:!text-[28px]']" :style="{ color: card.borderColor }" />
+          <div class="flex-shrink-0 w-20 h-20 md:w-20 md:h-20 rounded-[18px] md:rounded-full flex items-center justify-center ml-1 mr-4 md:mx-auto md:mb-2 shadow-md md:shadow-[inset_0_2px_8px_rgba(0,0,0,0.03)] z-10 lg:relative lg:top-[10%]" :class="card.bgColor">
+            <component :is="card.iconIsSvg ? 'svg' : 'i'" v-bind="card.iconProps" :class="[card.iconClass, 'md:!text-[32px]']" :style="{ color: card.borderColor }" />
           </div>
           
-          <div class="flex-1 min-w-0 z-10 relative left-[2%] lg:left-0 lg:mb-2 lg:w-full">
-            <h6 class="card-titulo text-[#1E1B4B] font-['Quicksand'] font-bold !text-[15px] md:!text-lg leading-snug mb-1 relative left-[5px] lg:left-0 lg:text-lg lg:mb-1">
+          <div class="flex-1 min-w-0 z-10 relative left-[2%] md:left-0 md:w-full md:flex md:flex-col md:items-center">
+            <h6 class="card-titulo text-[#1E1B4B] font-['Quicksand'] font-bold !text-[15px] md:!text-[22px] leading-snug mb-1 relative left-[5px] md:left-0 md:mb-2 lg:relative lg:top-[22%]">
               {{ card.titulo }}
             </h6>
-            <p class="text-gray-600 !text-[14px] md:!text-[15px] leading-snug line-clamp-2 relative left-[5px] lg:left-0 lg:text-sm lg:line-clamp-none lg:px-4">
+            <p class="text-gray-600 font-['Quicksand'] !text-[14px] md:!text-[14px] md:text-slate-500 md:font-medium leading-snug md:leading-relaxed line-clamp-2 md:line-clamp-none relative left-[5px] md:left-0 md:max-w-[250px] lg:relative lg:top-[23%]">
               {{ card.descricao }}
             </p>
           </div>
           
-          <div class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ml-3 shadow-md transition-transform duration-300 hover:scale-110 z-10 lg:mt-auto lg:ml-0 lg:w-10 lg:h-10" :style="{ backgroundColor: card.borderColor }">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lg:w-5 lg:h-5">
+          <div 
+            class="flex-shrink-0 w-10 h-10 md:w-28 md:h-10 rounded-full md:rounded-2xl flex items-center justify-center ml-3 md:ml-0 md:mx-auto md:mt-1 md:-translate-y-8 shadow-md transition-transform duration-300 hover:scale-110 hover:md:scale-110 hover:md:translate-y-1 z-10" 
+            :style="{ backgroundColor: card.borderColor }"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="md:w-5 md:h-5">
               <path d="M5 12h14M12 5l7 7-7 7"/>
             </svg>
           </div>
         </div>
       </div>
 
-      <div class="bg-slate-50 border border-gray-200/60 rounded-2xl p-4 flex items-center justify-center gap-2 shadow-sm text-center mt-6 mb-8 w-full max-w-[92%] md:max-w-2xl">
+      <div class="bg-slate-50 border border-gray-200/60 rounded-2xl p-4 flex items-center justify-center gap-2 shadow-[0_4px_12px_rgba(0,0,0,0.03)] text-center mt-8 mb-8 w-full max-w-[92%] md:max-w-2xl lg:h-[3rem] relative z-20">
         <i class="fa-solid fa-star text-amber-400 text-sm md:text-base animate-pulse flex-shrink-0"></i>
         <p class="font-['Quicksand'] font-medium text-gray-600 text-xs md:text-sm tracking-wide m-0">
           "O conhecimento transforma o mundo. Continue evoluindo com a IAra! ✨"
@@ -96,7 +105,8 @@ const router = useRouter(), authStore = useAuthStore()
 const nomeUsuario = computed(() => authStore.usuario?.nome || 'Visitante')
 const modal = reactive({ visible: false })
 
-const windowWidth = ref(0)
+// Inicializa com o tamanho atual se já estiver no ambiente do navegador (previne bug de refresh)
+const windowWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1024)
 const isMobile = computed(() => windowWidth.value < 640)
 const isTablet = computed(() => windowWidth.value >= 640 && windowWidth.value < 1024)
 
@@ -122,8 +132,7 @@ const desktopBackgroundStyle = {
   backgroundSize: 'contain',
   backgroundPosition: 'center top',
   backgroundRepeat: 'no-repeat',
-  backgroundAttachment: 'scroll',
-  backgroundColor: '#380075'
+  backgroundAttachment: 'scroll'
 }
 
 const tabletBackgroundStyle = {
@@ -131,8 +140,7 @@ const tabletBackgroundStyle = {
   backgroundSize: 'cover',
   backgroundPosition: 'center',
   backgroundRepeat: 'no-repeat',
-  backgroundAttachment: 'scroll',
-  backgroundColor: '#380075'
+  backgroundAttachment: 'scroll'
 }
 
 const mobileBackgroundStyle = {
@@ -140,8 +148,7 @@ const mobileBackgroundStyle = {
   backgroundSize: 'cover',
   backgroundPosition: 'center',
   backgroundRepeat: 'no-repeat',
-  backgroundAttachment: 'scroll',
-  backgroundColor: '#380075'
+  backgroundAttachment: 'scroll'
 }
 
 const backgroundStyle = computed(() => {
@@ -210,6 +217,37 @@ const irPara = async (rota) => {
 </script>
 
 <style scoped>
+/* CSS NATIVO ANTI-BUG DE REFRESH: Aplica a imagem imediatamente via Media Queries do navegador */
+.bg-fundo-default {
+  background-color: #380075;
+  background-repeat: no-repeat;
+  background-attachment: scroll;
+}
+
+@media (max-width: 639px) {
+  .bg-fundo-default {
+    background-image: url('/img/fundo2.jpg');
+    background-size: cover;
+    background-position: center;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  .bg-fundo-default {
+    background-image: url('/img/fundo.png');
+    background-size: cover;
+    background-position: center;
+  }
+}
+
+@media (min-width: 1024px) {
+  .bg-fundo-default {
+    background-image: url('/img/fundo.png');
+    background-size: contain;
+    background-position: center top;
+  }
+}
+
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -264,25 +302,25 @@ const irPara = async (rota) => {
   }
 }
 
-/* ── Tablet e Notebook Pequeno (640px – 1023px) ────────────────── */
+/* ── Notebooks Menores / Tablets (640px – 1023px) ────────────────── */
 @media (min-width: 640px) and (max-width: 1023px) {
   .textoSaudacao { font-size: 1.8rem; }
   .logoIaraMenu  {
-    height: 48vh;
-    margin-bottom: -100px;
+    height: 58vh;
+    margin-bottom: -130px;
   }
   .grid-cards { 
     max-width: 680px; 
   }
 }
 
-/* ── Desktop (≥ 1024px) ───────────────────────────────────────── */
+/* ── Telas Grandes / Desktop (≥ 1024px) ───────────────────────────────────────── */
 @media (min-width: 1024px) {
   .saudacaoContainer { position: relative; bottom: 0%; }
   .logoIaraMenu {
-    height: 55vh;
+    height: 68vh;
     position: relative;
-    bottom: 10%;
+    bottom: 5%;
     left: 0 !important;
   }
 
