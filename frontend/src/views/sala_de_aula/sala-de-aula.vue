@@ -206,7 +206,6 @@ const emojis = ['🌻','📱','📸','🛡️','🎨','💰','🚀','💡','🎯
 const novaTurma = ref({ titulo: '', codigo: '', cor: '#FFD700', icone: '🌻', nivel: 'Iniciante' })
 const novaAula  = ref({ titulo: '', dataLancamento: '', liberado: true, videoId: '', descricao: '', topicosTexto: '', topicos: [], pdfs: [] })
 
-// Sistema de rastreamento de turmas desbloqueadas pelo aluno
 const turmasDesbloqueadas = ref([])
 
 function carregarTurmasDesbloqueadas() {
@@ -217,7 +216,7 @@ function carregarTurmasDesbloqueadas() {
       turmasDesbloqueadas.value = Array.isArray(parsed) ? parsed : []
     }
   } catch (error) {
-    console.warn('[SalaDeAula] Cache corrompido. Resetando histórico de turmas locais.')
+    console.warn('[SalaDeAula] Cache está corrompido. Resetando o histórico de turmas locais.')
     turmasDesbloqueadas.value = []
     localStorage.removeItem('iara_turmas_desbloqueadas')
   }
