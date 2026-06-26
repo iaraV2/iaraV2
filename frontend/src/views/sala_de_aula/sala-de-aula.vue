@@ -166,7 +166,6 @@ import FooterAnjos from '../../components/sala/FooterAnjos.vue'
 import SalaModals  from '../../components/sala/SalaModals.vue'
 import SalaBottomNav from '../../components/sala/SalaBottomNav.vue'
 
-import { cursos as cursosSalas } from './salasCurso.js'
 import { useAuthStore } from '../../stores/auth.js'
 import { useToast } from 'vue-toastification'
 import {
@@ -243,7 +242,7 @@ async function recarregarCursos() {
   try {
     if (isProfessor.value) {
       const turmasDoBackend = await buscarTodasTurmas()
-      const turmasMapeadas = (turmasDoBackend || []).map(t => ({
+      cursos.value = (turmasDoBackend || []).map(t => ({
         id:        t.id,
         titulo:    t.nome || t.titulo || 'Sem título',
         cor:       t.cor      || '#FFD700',
@@ -254,17 +253,9 @@ async function recarregarCursos() {
         descricao: t.descricao || '',
         aulasSemana: t.aulasSemana || [],
       }))
-      const idsBanco = new Set(turmasMapeadas.map(t => String(t.id)))
-      cursos.value = [
-        ...cursosSalas.filter(c => !idsBanco.has(String(c.id))),
-        ...turmasMapeadas,
-      ]
-
     } else {
-      // Busca todas as turmas do banco de dados (não apenas as matriculadas)
       const turmasDoBackend = await buscarTodasTurmas()
       
-      // Busca turmas em que o aluno está matriculado para pegar o progresso real
       let minhasTurmas = []
       try {
         minhasTurmas = await buscarMinhasTurmasAluno()
@@ -272,14 +263,12 @@ async function recarregarCursos() {
         console.warn('[SalaDeAula] Erro ao buscar turmas do aluno:', err)
       }
 
-      // Cria um mapa de progresso para facilitar o acesso
       const mapaProgresso = {}
       minhasTurmas.forEach(mt => {
-        // No backend, mt.turmaId é o ID da turma e mt.progressoPct é o progresso
         mapaProgresso[String(mt.turmaId)] = mt.progressoPct || 0
       })
 
-      const turmasMapeadas = (turmasDoBackend || []).map(t => ({
+      cursos.value = (turmasDoBackend || []).map(t => ({
         id:        t.id,
         titulo:    t.nome || t.titulo || 'Sem título',
         cor:       t.cor      || '#FFD700',
@@ -290,28 +279,16 @@ async function recarregarCursos() {
         descricao: t.descricao || '',
         aulasSemana: t.aulasSemana || [],
       }))
-
-      const idsBanco = new Set(turmasMapeadas.map(t => String(t.id)))
-      cursos.value = [
-        ...cursosSalas.filter(c => !idsBanco.has(String(c.id))),
-        ...turmasMapeadas,
-      ]
       
-      // Carrega turmas desbloqueadas do localStorage
       carregarTurmasDesbloqueadas()
     }
   } catch (error) {
     console.error('[SalaDeAula] Erro ao carregar turmas:', error)
-    if (cursos.value.length === 0) cursos.value = [...cursosSalas]
+    cursos.value = [] 
   } finally {
     carregando.value = false
   }
 }
-
-onMounted(() => {
-  carregarTurmasDesbloqueadas()
-  recarregarCursos()
-})
 
 // ─── Navegação ────────────────────────────────────────────────────────────────
 

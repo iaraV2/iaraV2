@@ -232,7 +232,6 @@ import IconLock from '../../components/ui/IconLock.vue'
 import FooterAnjos from '../../components/sala/FooterAnjos.vue'
 import SalaBottomNav from '../../components/sala/SalaBottomNav.vue'
 import { formatarData } from '../../composables/formatarData.js'
-import { getCursoById } from './salasCurso.js'
 import { useAuthStore } from '../../stores/auth.js'
 import {
   buscarAulasPorTurmaId, buscarTurmaPorId, atualizarAula,
@@ -261,15 +260,19 @@ const novaAula = ref({
   descricao: '', topicosTexto: '', pdfs: [],
 })
 
+
+
 async function carregarAulas() {
   carregando.value = true
   erroCarregamento.value = false
 
   try {
     const turma = await buscarTurmaPorId(String(props.salaId))
+    
     if (turma) {
       turmaDoBackend.value = true
       const aulas = await buscarAulasPorTurmaId(String(props.salaId))
+      
       const aulasComProgresso = await Promise.all(
         aulas.map(async (a) => {
           const progresso = { videoAssistido: false, pdfVisualizado: false, pdfBaixado: false, progresso: 0 }
@@ -280,36 +283,27 @@ async function carregarAulas() {
             topicos: Array.isArray(a.topicos) ? a.topicos : [],
             dataLancamento: a.dataLancamento || '',
             descricao: a.descricao || '',
-            progressoAula: progresso || { videoAssistido: false, pdfVisualizado: false, pdfBaixado: false, progresso: 0 }
+            progressoAula: progresso
           }
         })
       )
+      
       curso.value = {
         ...mapearTurmaParaCard(turma),
         aulasSemana: aulasComProgresso
       }
     } else {
-      const cursoEstatico = getCursoById(props.salaId)
-      if (cursoEstatico) {
-        curso.value = cursoEstatico
-      } else {
-        erroCarregamento.value = true
-      }
+      erroCarregamento.value = true
     }
   } catch (error) {
     console.error('Erro ao buscar turma no backend:', error)
-    const cursoEstatico = getCursoById(props.salaId)
-    if (cursoEstatico) {
-      curso.value = cursoEstatico
-    } else {
-      erroCarregamento.value = true
-    }
+    erroCarregamento.value = true
   } finally {
-    // Delay de 1.5 segundos antes de mostrar o conteúdo
     await new Promise(resolve => setTimeout(resolve, 1500))
     carregando.value = false
   }
 }
+
 
 function recarregarAulas() {
   carregarAulas()
