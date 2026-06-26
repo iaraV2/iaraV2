@@ -210,15 +210,27 @@ const novaAula  = ref({ titulo: '', dataLancamento: '', liberado: true, videoId:
 const turmasDesbloqueadas = ref([])
 
 function carregarTurmasDesbloqueadas() {
-  const desbloqueadas = localStorage.getItem('iara_turmas_desbloqueadas')
-  if (desbloqueadas) {
-    turmasDesbloqueadas.value = JSON.parse(desbloqueadas)
+  try {
+    const desbloqueadas = localStorage.getItem('iara_turmas_desbloqueadas')
+    if (desbloqueadas) {
+      const parsed = JSON.parse(desbloqueadas)
+      turmasDesbloqueadas.value = Array.isArray(parsed) ? parsed : []
+    }
+  } catch (error) {
+    console.warn('[SalaDeAula] Cache corrompido. Resetando histórico de turmas locais.')
+    turmasDesbloqueadas.value = []
+    localStorage.removeItem('iara_turmas_desbloqueadas')
   }
 }
 
-function salvarTurmaDesbloqueada(turmaId) {
-  if (!turmasDesbloqueadas.value.includes(turmaId)) {
-    turmasDesbloqueadas.value.push(turmaId)
+ffunction salvarTurmaDesbloqueada(turmaId) {
+  if (!Array.isArray(turmasDesbloqueadas.value)) {
+    turmasDesbloqueadas.value = []
+  }
+  
+  const idString = String(turmaId)
+  if (!turmasDesbloqueadas.value.includes(idString)) {
+    turmasDesbloqueadas.value.push(idString)
     localStorage.setItem('iara_turmas_desbloqueadas', JSON.stringify(turmasDesbloqueadas.value))
   }
 }
