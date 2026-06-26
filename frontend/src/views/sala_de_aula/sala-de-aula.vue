@@ -240,8 +240,9 @@ const cursosVisiveis = computed(() => {
 async function recarregarCursos() {
   carregando.value = true
   try {
+    const turmasDoBackend = await buscarTodasTurmas()
+    
     if (isProfessor.value) {
-      const turmasDoBackend = await buscarTodasTurmas()
       cursos.value = (turmasDoBackend || []).map(t => ({
         id:        t.id,
         titulo:    t.nome || t.titulo || 'Sem título',
@@ -254,8 +255,6 @@ async function recarregarCursos() {
         aulasSemana: t.aulasSemana || [],
       }))
     } else {
-      const turmasDoBackend = await buscarTodasTurmas()
-      
       let minhasTurmas = []
       try {
         minhasTurmas = await buscarMinhasTurmasAluno()
@@ -264,9 +263,13 @@ async function recarregarCursos() {
       }
 
       const mapaProgresso = {}
-      minhasTurmas.forEach(mt => {
-        mapaProgresso[String(mt.turmaId)] = mt.progressoPct || 0
-      })
+      if (Array.isArray(minhasTurmas)) {
+        minhasTurmas.forEach(mt => {
+          if (mt && mt.turmaId) {
+            mapaProgresso[String(mt.turmaId)] = mt.progressoPct || 0
+          }
+        })
+      }
 
       cursos.value = (turmasDoBackend || []).map(t => ({
         id:        t.id,
@@ -283,7 +286,7 @@ async function recarregarCursos() {
       carregarTurmasDesbloqueadas()
     }
   } catch (error) {
-    console.error('[SalaDeAula] Erro ao carregar turmas:', error)
+    console.error('[SalaDeAula] Erro crítico ao carregar turmas:', error)
     cursos.value = [] 
   } finally {
     carregando.value = false
