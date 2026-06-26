@@ -549,6 +549,10 @@ function extrairVideoId(url) {
 function handlePdfUpload(event) {
   novaAula.value.pdfs = Array.from(event.target.files)
 }
+
+onMounted(() => {
+  recarregarCursos()
+})
 </script>
 
 <style scoped>
