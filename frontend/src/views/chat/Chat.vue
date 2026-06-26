@@ -54,12 +54,12 @@
       </div>
 
       <!-- Footer / input -->
-      <div class="chat-footer px-3 py-2 pb-safe bg-black/40 border-t border-white/10 w-full h-[5.5rem] lg:h-[11%]">
+      <div class="chat-footer px-3 py-2 pb-safe bg-black/40 border-t border-white/10 w-[100%] h-[5.5rem] lg:h-[15%]">
         <div class="flex gap-3 items-center w-full">
           <input 
-            class="relative left-[10px] top-[1.1rem] w-[80%] h-[48px] mx-auto bg-white/90 border-none text-[#380075] pr-4 py-[10px] rounded-[25px] text-[0.9rem] font-['Quicksand'] outline-none font-semibold placeholder:text-[#666] indent-5 lg:w-[90%]"
+            class="relative left-[10px] top-[1.1rem] w-[80%] h-[48px] mx-auto bg-white/90 border-none text-[#380075] pr-4 py-[10px] rounded-[25px] text-[0.9rem] font-['Quicksand'] outline-none font-semibold placeholder:text-[#666] indent-5 lg:w-[92%]"
             type="text"
-            :placeholder="carregando ? 'Aguarde...' : 'Digite sua dúvida...'"
+            :placeholder="carregando ? 'Aguarde...' : 'Digite para falar com a IAra...'"
             v-model="texto"
             @keydown.enter.prevent="enviarMensagem"
             :disabled="carregando"

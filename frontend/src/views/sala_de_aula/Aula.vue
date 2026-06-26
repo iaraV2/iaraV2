@@ -1,11 +1,9 @@
 <template>
 
-  <div class="w-full h-full flex flex-col items-center py-6 px-4 pb-24 overflow-y-auto font-['Quicksand'] text-white hide-scrollbar relative bg-[#380075]">
-    <!-- Abstract shapes -->
+  <div class="w-full h-full flex flex-col items-center py-6 px-4 pb-80 overflow-y-auto font-['Quicksand'] text-white hide-scrollbar relative bg-[#380075]">
     <div class="absolute top-20 left-10 w-64 h-64 bg-cyan-400/10 rounded-full blur-3xl pointer-events-none"></div>
     <div class="absolute bottom-40 right-10 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
     
-    <!-- Purple circles -->
     <div class="absolute -top-20 -left-10 w-40 h-40 sm:w-90 sm:h-90 rounded-full opacity-40 z-0" style=" background-color: #7a3cae;"></div>
     <div class="absolute top-20 right-10 w-32 h-32 sm:top-40 sm:right-32 sm:w-70 sm:h-70 rounded-full opacity-35 z-0" style=" background-color: #7a3cae;"></div>
     <div class="absolute bottom-20 left-10 w-24 h-24 sm:bottom-48 sm:left-40 sm:w-50 sm:h-50 rounded-full opacity-18 z-0" style=" background-color: #7a3cae;"></div>
@@ -18,19 +16,19 @@
 
         <BackButton
 
-          button-class="w-10 h-10 shrink-0 flex items-center justify-center bg-white/10 backdrop-blur-md border border-white/15 text-white rounded-full cursor-pointer transition-all duration-300 hover:bg-cyan-400 hover:border-cyan-400 hover:text-[#420583] hover:scale-105 active:scale-95"
+          button-class="fixed top-6 left-5 z-[1000] w-10 h-10 shrink-0 flex items-center justify-center bg-white/10 backdrop-blur-md border border-white/15 text-white rounded-full cursor-pointer transition-all duration-300 hover:bg-cyan-400 hover:border-cyan-400 hover:text-[#420583] hover:scale-105 active:scale-95"
 
           @click="router.back()"
 
         />
 
-        <h1 class="text-xl md:text-3xl text-center font-bold max-w-[13ch] md:max-w-[16ch] block leading-tight break-words text-white">{{ titulo }}</h1>
+        <h1 class="text-xl md:text-3xl text-center font-bold max-w-[13ch] md:max-w-[16ch] block leading-tight break-words text-white px-12">{{ titulo }}</h1>
 
         <button
 
           @click="toggleFavorito"
 
-          class="w-10 h-10 shrink-0 flex items-center justify-center bg-white/10 backdrop-blur-md border border-white/15 rounded-full text-white cursor-pointer transition-all duration-300 hover:scale-105 active:scale-95"
+          class="fixed top-6 right-5 z-[1000] w-10 h-10 shrink-0 flex items-center justify-center bg-white/10 backdrop-blur-md border border-white/15 rounded-full text-white cursor-pointer transition-all duration-300 hover:scale-105 active:scale-95"
 
         >
 
@@ -204,15 +202,7 @@
     </div>
 
     
-    <div class="fixed bottom-13 left-0 w-full px-4 shrink-0 z-50 flex justify-center">
-  <div class="bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-xl sm:rounded-full shadow-xl border border-white/20 flex items-center justify-center gap-1.5 max-w-[280px] sm:max-w-fit mx-auto">
-    <span class="text-base shrink-0">💡</span>
-    <p class="text-gray-700 text-[11px] sm:text-xs font-medium text-center leading-tight">
-      Continue seus estudos regularmente para manter o progresso!
-    </p>
-  </div>
-</div>
-
+    
   </div>
 
   <SalaBottomNav />
@@ -273,7 +263,7 @@ const carregandoPreview = ref(false)
 
 const urlsPreview = ref({})
 
-// Progresso da aula
+
 const progressoAula = ref({
   videoAssistido: false,
   pdfVisualizado: false,
@@ -342,13 +332,6 @@ onMounted(async () => {
 
     pdfsDoBackend.value = await listarPdfs(turmaId.value, conteudoId.value)
 
-    // Carregar progresso da aula (desativado até backend implementado)
-    // const progressoSalvo = await buscarProgressoAula(turmaId.value, conteudoId.value)
-    // if (progressoSalvo) {
-    //   progressoAula.value = progressoSalvo
-    // }
-
-    // Configurar rastreamento de vídeo
     configurarRastreamentoVideo()
 
   } catch (error) {
@@ -395,10 +378,8 @@ async function visualizarPdf(pdf) {
 
     urlsPreview.value[pdf.id] = URL.createObjectURL(blob)
 
-    // Marcar PDF como visualizado (25% de progresso)
     if (!progressoAula.value.pdfVisualizado) {
       progressoAula.value.pdfVisualizado = true
-      // await atualizarProgresso() // Desativado até backend implementado
     }
 
   } catch (error) {
@@ -425,10 +406,8 @@ async function fazerDownload(pdf) {
 
     await baixarPdf(turmaId.value, conteudoId.value, pdf.id, pdf.nome)
 
-    // Marcar PDF como baixado (25% de progresso)
     if (!progressoAula.value.pdfBaixado) {
       progressoAula.value.pdfBaixado = true
-      // await atualizarProgresso() // Desativado até backend implementado
     }
 
   } catch (error) {
@@ -469,7 +448,7 @@ function toggleFavorito() {
 
 }
 
-// ─── Rastreamento de Progresso ─────────────────────────────────────────────────
+
 
 function calcularProgresso() {
   let progresso = 0
@@ -481,32 +460,20 @@ function calcularProgresso() {
 
 async function atualizarProgresso() {
   progressoAula.value.progresso = calcularProgresso()
-  // try {
-  //   await salvarProgressoAula(turmaId.value, conteudoId.value, progressoAula.value)
-  // } catch (error) {
-  //   console.error('Erro ao salvar progresso:', error)
-  // }
 }
 
 function configurarRastreamentoVideo() {
-  // Usar YouTube Player API para rastrear quando o vídeo é assistido completamente
-  // Isso requer integração com a API do YouTube
-  // Por enquanto, vamos usar um timeout simples quando o usuário ficar na página
   const videoWatched = localStorage.getItem(`video_${turmaId.value}_${conteudoId.value}`)
   if (videoWatched === 'true') {
     progressoAula.value.videoAssistido = true
-    // atualizarProgresso() // Desativado até backend implementado
   }
 }
 
-// Marcar vídeo como assistido após 90% do tempo ou quando o usuário assistir completamente
 function marcarVideoAssistido() {
   if (!progressoAula.value.videoAssistido) {
     progressoAula.value.videoAssistido = true
     localStorage.setItem(`video_${turmaId.value}_${conteudoId.value}`, 'true')
-    // atualizarProgresso() // Desativado até backend implementado
   }
 }
 
 </script>
-

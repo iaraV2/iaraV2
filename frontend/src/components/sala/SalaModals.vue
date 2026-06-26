@@ -7,7 +7,7 @@
   >
     <div class="bg-[#2a085c] border border-white/10 rounded-[28px] p-6 w-full max-w-80 shadow-2xl flex flex-col gap-4 max-h-[80vh] overflow-y-auto">
       <h3 class="font-bold text-xl text-white text-center relative top-1">
-        {{ etapa === 'turma' ? 'Criar Nova Sala de Aula' : 'Adicionar Aula' }}
+        {{ etapa === 'turma' ? 'Criar Nova Sala de Aula' : 'Adicionar Primeira Aula' }}
       </h3>
 
       <!-- Etapa: dados da turma -->
@@ -16,7 +16,7 @@
           <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Nome da Sala</label>
           <input :value="novaTurma.titulo" @input="$emit('update:novaTurma', { ...novaTurma, titulo: $event.target.value })"
             type="text" class="w-[90%] relative left-3.5 bg-white/10 border border-white/15 rounded-xl p-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400"
-            placeholder="Digite o nome da turma">
+            placeholder="Digite o nome da sala">
         </div>
         <div>
           <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Código da Sala</label>
@@ -52,7 +52,7 @@
             <option value="Iniciante">Iniciante</option>
             <option value="Intermediário">Intermediário</option>
             <option value="Avançado">Avançado</option>
-            <option value="Essencial">Essencial</option>
+            <option value="Essencial">Essencial</option>Adicionar Aula
             <option value="Criativo">Criativo</option>
             <option value="Básico">Básico</option>
           </select>
@@ -143,7 +143,7 @@
           <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Nome da Sala</label>
           <input :value="turmaEditando.titulo" @input="$emit('update:turmaEditando', { ...turmaEditando, titulo: $event.target.value })"
             type="text" class="w-[90%] relative left-3.5 bg-white/10 border border-white/15 rounded-xl p-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400"
-            placeholder="Digite o nome da turma">
+            placeholder="Digite o nome da Sala">
         </div>
         <div>
           <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Código da Sala</label>

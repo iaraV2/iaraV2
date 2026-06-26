@@ -164,54 +164,60 @@
 
     <!-- Modal Editar Aula -->
     <div v-if="mostrarModalEditarAula && aulaEditando" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[3000] p-4" @click.self="mostrarModalEditarAula = false">
-      <div class="bg-[#2a085c] border border-white/10 rounded-[28px] p-6 w-full max-w-md shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
+      <div class="bg-[#2a085c] border border-white/10 rounded-[28px] p-6 w-[85%] max-w-md shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
         <h3 class="font-bold text-xl text-white text-center">Editar Aula</h3>
         
         <div class="flex flex-col gap-4">
           <div>
-            <label class="text-white/80 text-sm font-semibold mb-2 block">Tema da Aula</label>
-            <input v-model="aulaEditando.titulo" type="text" class="w-full bg-white/10 border border-white/15 rounded-xl p-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400" placeholder="Digite o tema da aula">
+            <label class="text-white/80 text-2 block relative-2 block relative left-6">Tema da Aula</label>
+            <input v-model="aulaEditando.titulo" type="text" class="w-[90%] relative left-3 bg-white/10 border border-white/15 rounded-xl p-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400" placeholder="Digite o tema da aula ">
           </div>
           
           <div>
-            <label class="text-white/80 text-sm font-semibold mb-2 block">Data de Publicação (dd/mm/aaaa)</label>
-            <input v-model="aulaEditando.dataLancamento" type="text" class="w-full bg-white/10 border border-white/15 rounded-xl p-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400" placeholder="dd/mm/aaaa">
+            <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Data de Publicação (dd/mm/aaaa)</label>
+            <input v-model="aulaEditando.dataLancamento" type="text" class="w-[90%] relative left-3 bg-white/10 border border-white/15 rounded-xl p-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400" placeholder="dd/mm/aaaa">
           </div>
           
           <div>
-            <label class="text-white/80 text-sm font-semibold mb-2 block">Aula Liberada?</label>
+            <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Aula Liberada?</label>
             <div class="flex gap-4">
-              <button @click="aulaEditando.liberado = true" class="flex-1 py-3 rounded-xl font-semibold transition-all" :class="aulaEditando.liberado ? 'bg-green-500 text-white' : 'bg-white/10 text-white/60'">Sim</button>
-              <button @click="aulaEditando.liberado = false" class="flex-1 py-3 rounded-xl font-semibold transition-all" :class="!aulaEditando.liberado ? 'bg-red-500 text-white' : 'bg-white/10 text-white/60'">Não</button>
+              <button @click="aulaEditando.liberado = true" class="py-3 rounded-xl font-semibold transition-all relative left-4 w-[40%]" :class="aulaEditando.liberado ? 'bg-green-500 text-white' : 'bg-white/10 text-white/60'">Sim</button>
+              <button @click="aulaEditando.liberado = false" class="  py-3 rounded-xl font-semibold transition-all relative -right-4 w-[45%] relative" :class="!aulaEditando.liberado ? 'bg-red-500 text-white' : 'bg-white/10 text-white/60'">Não</button>
             </div>
           </div>
           
           <div>
-            <label class="text-white/80 text-sm font-semibold mb-2 block">Link do YouTube</label>
-            <input v-model="aulaEditando.videoId" type="text" class="w-full bg-white/10 border border-white/15 rounded-xl p-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400" placeholder="Cole o link do YouTube">
+            <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Link do YouTube</label>
+            <input v-model="aulaEditando.videoId" type="text" class="w-[90%] relative left-3 bg-white/10 border border-white/15 rounded-xl p-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400" placeholder="Cole o link do YouTube">
           </div>
           
           <div>
-            <label class="text-white/80 text-sm font-semibold mb-2 block">Descrição</label>
-            <textarea v-model="aulaEditando.descricao" class="w-full bg-white/10 border border-white/15 rounded-xl p-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400 h-20 resize-none" placeholder="O que você vai aprender nessa aula"></textarea>
+            <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Descrição</label>
+            <textarea v-model="aulaEditando.descricao" class="w-[90%] relative left-3 bg-white/10 border border-white/15 rounded-xl p-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400 h-20 resize-none" placeholder="O que você vai aprender nessa aula"></textarea>
           </div>
           
           <div>
-            <label class="text-white/80 text-sm font-semibold mb-2 block">Tópicos (separados por vírgula)</label>
-            <textarea v-model="aulaEditando.topicosTexto" class="w-full bg-white/10 border border-white/15 rounded-xl p-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400 h-20 resize-none" placeholder="Tópico 1, Tópico 2, Tópico 3"></textarea>
+            <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Tópicos (separados por vírgula)</label>
+            <textarea v-model="aulaEditando.topicosTexto" class=" w-[90%] relative  left-3 bg-white/10 border border-white/15 rounded-xl p-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400 h-20 resize-none" placeholder="Tópico 1, Tópico 2, Tópico 3"></textarea>
           </div>
-          <div>
-            <label class="text-white/80 text-sm font-semibold mb-2 block">Adicionar PDFs (máx. 700KB cada)</label>
-            <input type="file" accept=".pdf,application/pdf" multiple @change="handlePdfUploadEdicao" class="w-full bg-white/10 border border-white/15 rounded-xl p-3 text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-cyan-400 file:text-[#420583] hover:file:bg-cyan-300">
-            <div v-if="aulaEditando.pdfsNovos?.length" class="mt-2 flex flex-col gap-1">
-              <div v-for="(pdf, i) in aulaEditando.pdfsNovos" :key="i" class="text-white/60 text-xs">📄 {{ pdf.name }}</div>
+ <div class="relative left-0 -top-[0.5rem] w-[100%]">
+            
+            <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6 -top-[0rem]">Adicionar PDFs (máx. 700KB cada)</label>
+            <input type="file" accept=".pdf,application/pdf" multiple @change="handlePdfUploadEdicao" class="w-[90%] relative left-3 bg-white/10 border border-white/15 rounded-2xl p-3 text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-cyan-400 file:text-[#420583] hover:file:bg-cyan-300">
+            <div v-if="aulaEditando.pdfsNovos?.length" class="mt-2 flex flex-col gap-1 relative left-3 ">
+              <div v-for="(pdf, i) in aulaEditando.pdfsNovos" :key="i" class="text-white/60 text-xs flex items-center gap-2">
+                <span>📄 {{ pdf.name }}</span>
+                <span :class="pdf.size > MAX_PDF_BYTES ? 'text-red-400' : 'text-green-400'">
+                  {{ pdf.size > MAX_PDF_BYTES ? '⚠ Muito grande' : '✓' }}
+                </span>
+              </div>
             </div>
           </div>
         </div>
 
         <div class="flex gap-3 mt-4">
-          <button @click="mostrarModalEditarAula = false; aulaEditando = null" class="flex-1 py-3 bg-white/10 border border-white/15 rounded-xl font-semibold text-white hover:bg-white/20 transition-all">Cancelar</button>
-          <button @click="salvarEdicaoAula" class="flex-1 py-3 bg-cyan-400 rounded-xl font-bold text-[#420583] hover:bg-cyan-300 transition-all">Salvar</button>
+          <button @click="mostrarModalEditarAula = false; aulaEditando = null" class=" relative left-3 w-[43%] -top-[0.5rem] py-3 bg-white/10 border border-white/15 rounded-xl font-semibold text-white hover:bg-white/20 transition-all">Cancelar</button>
+          <button @click="salvarEdicaoAula" class=" relative left-3  w-[44%] border -top-[0.5rem] py-3 bg-cyan-400 rounded-xl font-bold text-[#420583] hover:bg-cyan-300 transition-all">Salvar</button>
         </div>
       </div>
     </div>

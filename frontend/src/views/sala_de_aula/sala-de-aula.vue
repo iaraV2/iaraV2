@@ -207,9 +207,6 @@ const emojis = ['🌻','📱','📸','🛡️','🎨','💰','🚀','💡','🎯
 const novaTurma = ref({ titulo: '', codigo: '', cor: '#FFD700', icone: '🌻', nivel: 'Iniciante' })
 const novaAula  = ref({ titulo: '', dataLancamento: '', liberado: true, videoId: '', descricao: '', topicosTexto: '', topicos: [], pdfs: [] })
 
-// IDs das 6 turmas padrão que devem permanecer visíveis
-const turmasPadraoIds = ['1', '2', '3', '4', '5', '6']
-
 // Sistema de rastreamento de turmas desbloqueadas pelo aluno
 const turmasDesbloqueadas = ref([])
 
@@ -228,7 +225,7 @@ function salvarTurmaDesbloqueada(turmaId) {
 }
 
 function turmaEstaDesbloqueada(turmaId) {
-  return turmasPadraoIds.includes(String(turmaId)) || turmasDesbloqueadas.value.includes(String(turmaId))
+  return turmasDesbloqueadas.value.includes(String(turmaId))
 }
 
 // Computed property para filtrar cursos visíveis
@@ -324,7 +321,16 @@ function irParaListaAulas(curso) {
 
 // ─── Modais ───────────────────────────────────────────────────────────────────
 
-function abrirModalNovaTurma() { gerarCodigo(); mostrarModalNovaTurma.value = true }
+function abrirModalNovaTurma() {
+  // Verifica o limite de 16 turmas por professor
+  if (cursos.value.length >= 16) {
+    toast.error('Limite de Salas alcançado, delete uma turma para criar outra.', { timeout: 4000 })
+    return
+  }
+  
+  gerarCodigo()
+  mostrarModalNovaTurma.value = true
+}
 function abrirModalEditarTurma(turma) { turmaEditando.value = { ...turma }; mostrarModalEditarTurma.value = true }
 
 function fecharModalBusca() {
@@ -581,8 +587,8 @@ function handlePdfUpload(event) {
 @media (min-width: 1024px) {
   .bg-fundo-default {
     background-image: url('/img/fundo.png');
-    background-size: contain;
-    background-position: center top;
+    background-size: cover;
+    background-position: center;
   }
 }
 </style>

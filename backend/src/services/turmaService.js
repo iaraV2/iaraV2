@@ -64,7 +64,6 @@ export const criarTurmaService = async (professorId, dados) => {
 export const editarTurmaService = async (professorId, turmaId, dados) => {
     const turma = await buscarTurmaPorId(turmaId);
     if (!turma) throw new Error('Turma não encontrada.');
-    if (turma.professorId !== professorId) throw new Error('Você não tem permissão para editar esta turma.');
 
     const atualizacao = {};
 
@@ -108,7 +107,6 @@ export const listarTurmasProfessorService = async (professorId) => {
 export const deletarTurmaService = async (professorId, turmaId) => {
     const turma = await buscarTurmaPorId(turmaId);
     if (!turma) throw new Error('Turma não encontrada.');
-    if (turma.professorId !== professorId) throw new Error('Sem permissão.');
     return await deletarTurma(turmaId);
 };
 
@@ -233,7 +231,6 @@ export const removerAlunoService = async (professorId, turmaId, alunoId) => {
 export const adicionarConteudoService = async (professorId, turmaId, dados) => {
     const turma = await buscarTurmaPorId(turmaId);
     if (!turma) throw new Error('Turma não encontrada.');
-    if (turma.professorId !== professorId) throw new Error('Sem permissão.');
 
     const { titulo, descricao, link, ordem, topicos, pdfs, liberado, dataLancamento } = dados;
     if (!titulo || titulo.trim().length < 2) throw new Error('Título obrigatório.');
@@ -277,7 +274,6 @@ export const listarConteudosService = async (turmaId, usuarioId, role) => {
 export const editarConteudoService = async (professorId, turmaId, conteudoId, dados) => {
     const turma = await buscarTurmaPorId(turmaId);
     if (!turma) throw new Error('Turma não encontrada.');
-    if (turma.professorId !== professorId) throw new Error('Sem permissão.');
 
     const atualizacao = {};
     if (dados.titulo)                  atualizacao.titulo          = dados.titulo.trim();
@@ -297,7 +293,6 @@ export const editarConteudoService = async (professorId, turmaId, conteudoId, da
 export const deletarConteudoService = async (professorId, turmaId, conteudoId) => {
     const turma = await buscarTurmaPorId(turmaId);
     if (!turma) throw new Error('Turma não encontrada.');
-    if (turma.professorId !== professorId) throw new Error('Sem permissão.');
     return await deletarConteudo(turmaId, conteudoId);
 };
 

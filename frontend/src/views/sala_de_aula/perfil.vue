@@ -59,13 +59,13 @@
       </div>
     </div>
 
-    <div class="w-[80%] max-w-lg mt-4 mb-6 relative top-[5%]">
+    <div class="w-[80%]  mt-4 mb-6 relative top-[5%]">
       <div class="bg-white/10 backdrop-blur-md rounded-[20px] p-6 border border-white/20 shadow-lg">
         <div class="text-center flex flex-col items-center">
           <h2 class="text-xl font-bold text-white mb-1">{{ nomeUsuario || 'Seu Nome' }}</h2>
-          <p class="text-cyan-300 text-sm mb-4">{{ emailUsuario || 'seu@email.com' }}</p>
+          <p class="text-cyan-300 text-sm mb-4 relative -top-[0.4rem]">{{ emailUsuario || 'seu@email.com' }}</p>
           
-          <span class="inline-block bg-cyan-400/20 border border-cyan-400/30 text-cyan-300 text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wider">
+          <span class="inline-block bg-cyan-400/20 border border-cyan-400/30 text-cyan-300 text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wider relative -top-[0.4rem] w-[10%] mb: -left-[0%] w-[10em] md">
             {{ roleUsuario === 'professor' ? 'Professor' : 'Aluno' }}
           </span>
         </div>
