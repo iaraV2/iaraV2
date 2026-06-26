@@ -223,7 +223,7 @@ function carregarTurmasDesbloqueadas() {
   }
 }
 
-ffunction salvarTurmaDesbloqueada(turmaId) {
+function salvarTurmaDesbloqueada(turmaId) {
   if (!Array.isArray(turmasDesbloqueadas.value)) {
     turmasDesbloqueadas.value = []
   }
