@@ -263,7 +263,7 @@
   class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[3000] p-4"
   @click.self="$emit('fechar-modal-codigo')"
 >
-  <div class="bg-[#2a085c] border border-white/10 rounded-[28px] p-6 w-[90%] h-[35vh] max-w-md shadow-2xl flex flex-col gap-4 relative bottom-[7%]">
+  <div class="bg-[#2a085c] border border-white/10 rounded-[28px] p-7 w-full max-w-[350px] sm:max-w-md shadow-2xl flex flex-col gap-5 relative bottom-[2%] h-auto min-h-[280px] max-h-[90vh] overflow-y-auto overflow-x-hidden">
     <h3 class="font-bold text-xl text-white text-center relative top-2">Entrar na Sala</h3>
     
     <div class="flex items-center gap-3 p-3 bg-white/5 border border-white/10 rounded-xl relative top-1 w-[89%] left-[5%]">

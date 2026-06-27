@@ -17,6 +17,71 @@ function gerarCodigo() {
     return 'IARA-' + crypto.randomBytes(2).toString('hex').toUpperCase();
 }
 
+// ─── Cria turmas padrão para novos professores ─────────────────────────────
+export const criarTurmasPadraoParaProfessor = async (professorId) => {
+    const turmasPadrao = [
+        {
+            nome: 'Primeiros Passos no Digital',
+            descricao: 'Aprenda os conceitos básicos de marketing digital.',
+            cor: '#FFD700',
+            icone: '🌻',
+            nivel: 'Iniciante',
+        },
+        {
+            nome: 'Vendendo no whatsApp',
+            descricao: 'Domine as técnicas de marketing e vendas no whatsApp.',
+            cor: '#0bb457ff',
+            icone: '📱',
+            nivel: 'Intermediário',
+        },
+        {
+            nome: 'Criando Artes no Canva',
+            descricao: 'Crie artes no Canva para seu negócios.',
+            cor: '#00C4CC',
+            icone: '🎨',
+            nivel: 'Intermediário',
+        },
+        {
+            nome: 'Editar Fotografias no Celular',
+            descricao: 'Aprenda a editar fotos usando as ferramentas disponíveis no seu celular.',
+            cor: '#2d2fb4ff',
+            icone: '📸',
+            nivel: 'Intermediário',
+        },
+        {
+            nome: 'Controle Financeiro Simples',
+            descricao: 'Aprenda a criar contas financeiras e simples para seus negócios.',
+            cor: '#85bb65',
+            icone: '💰',
+            nivel: 'Avançado',
+        },
+        {
+            nome: 'Segurança na Internet',
+            descricao: 'Proteja aplicações e dados com as melhores práticas de segurança.',
+            cor: '#cc3c18ff',
+            icone: '🔒',
+            nivel: 'Avançado',
+        },
+    ];
+
+    const turmasCriadas = [];
+    for (const turma of turmasPadrao) {
+        const turmaId = await criarTurma({
+            nome: turma.nome,
+            descricao: turma.descricao,
+            professorId,
+            codigo: gerarCodigo(),
+            cor: turma.cor,
+            icone: turma.icone,
+            nivel: turma.nivel,
+            progresso: 0,
+        });
+        turmasCriadas.push(turmaId);
+    }
+
+    return turmasCriadas;
+};
+
 
 // ─── TURMAS ───────────────────────────────────────────────────────────────────
 

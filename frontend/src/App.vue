@@ -72,8 +72,7 @@ body, html {
   position: relative;
   width: 100%;
   height: 100dvh;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden;
   background-color: #380075;
 }
 

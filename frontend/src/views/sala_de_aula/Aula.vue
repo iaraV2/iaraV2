@@ -1,6 +1,6 @@
 <template>
 
-  <div class="w-full h-full flex flex-col items-center py-6 px-4 pb-80 overflow-y-auto font-['Quicksand'] text-white hide-scrollbar relative bg-[#380075]">
+<div class="w-full flex flex-col items-center py-6 px-4 pb-48 font-['Quicksand'] text-white hide-scrollbar relative bg-[#380075]" style="height: 100dvh; overflow-y: auto; overflow-x: hidden;">
     <div class="absolute top-20 left-10 w-64 h-64 bg-cyan-400/10 rounded-full blur-3xl pointer-events-none"></div>
     <div class="absolute bottom-40 right-10 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
     

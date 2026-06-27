@@ -134,6 +134,7 @@ const fileInput = ref(null)
 const fotoPerfil = ref('')
 const nomeUsuario = ref('')
 const emailUsuario = ref('')
+const usuarioId = ref('')
 const mostrarOpcoes = ref(false)
 const mostrarVisualizador = ref(false)
 const mostrarModalSair = ref(false) 
@@ -141,7 +142,7 @@ const mostrarModalSair = ref(false)
 const roleUsuario = ref('aluno')
 
 const chaveStorage = computed(() =>
-  roleUsuario.value === 'professor' ? 'perfil_professor' : 'perfil_aluno'
+  `perfil_${usuarioId.value || 'guest'}`
 )
 
 onMounted(() => {
@@ -152,6 +153,7 @@ onMounted(() => {
       roleUsuario.value  = usuario.role  || 'aluno'
       nomeUsuario.value  = usuario.nome  || ''
       emailUsuario.value = usuario.email || ''
+      usuarioId.value    = usuario.id    || ''
     }
   } catch {
     roleUsuario.value = 'aluno'

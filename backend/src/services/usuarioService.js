@@ -8,6 +8,7 @@ import {adicionarUsuario} from "../models/usuarioModel.js"
 import 'dotenv/config';
 import crypto from 'crypto';
 import { Resend } from 'resend'; // 🔥 Substituído Nodemailer pelo Resend
+import { criarTurmasPadraoParaProfessor } from './turmaService.js';
 
 // Inicialização do Resend
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -46,6 +47,16 @@ const cadastrarUsuarioService = async (dadosUsuario, roleRequisitante = 'publico
     };
 
     const idCriado = await adicionarUsuario(novoUsuario);
+
+    // Cria 6 turmas padrão para professores
+    if (roleDefinida === 'professor' || roleDefinida === 'professor_pendente') {
+        try {
+            await criarTurmasPadraoParaProfessor(idCriado);
+        } catch (error) {
+            console.error('[usuarioService] Erro ao criar turmas padrão:', error);
+            // Não impede o cadastro se falhar a criação das turmas
+        }
+    }
 
     return {
         id:       idCriado,
