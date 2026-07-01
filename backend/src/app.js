@@ -6,6 +6,7 @@ import usuarioRoutes from './routes/usuarioRoutes.js';
 import chatRoutes from "./routes/chatRoutes.js";
 import turmaRoutes from "./routes/turmaRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
+import progressoRoutes from "./routes/progressoRoutes.js";
 
 const app = express()
 
@@ -19,5 +20,6 @@ app.use("/iara/chat", chatRoutes)
 // Novas rotas
 app.use("/iara/turmas", turmaRoutes);
 app.use("/iara/admin", adminRoutes);
+app.use("/iara/progresso", progressoRoutes);
 
 export default app

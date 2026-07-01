@@ -146,23 +146,31 @@ export const listarAlunosDaTurma = async (turmaId) => {
 };
 
 export const listarTurmasDoAluno = async (alunoId) => {
-    const snap = await db.collectionGroup('alunos')
-        .where('alunoId', '==', alunoId)
-        .get();
+    const snap = await db.collection('usuarios').doc(alunoId)
+        .collection('turmasMatriculadas').get();
     const turmas = await Promise.all(
         snap.docs.map(async (doc) => {
-            const turmaId  = doc.ref.parent.parent.id;
+            const turmaId = doc.id;
             const turmaDoc = await db.collection(COLECAO).doc(turmaId).get();
-            return { turmaId, ...doc.data(), turma: { id: turmaDoc.id, ...turmaDoc.data() } };
+            if (!turmaDoc.exists) return null;
+            const alunoTurmaDoc = await db.collection(COLECAO).doc(turmaId)
+                .collection('alunos').doc(alunoId).get();
+            return {
+                turmaId,
+                alunoId,
+                progressoPct: alunoTurmaDoc.exists ? (alunoTurmaDoc.data().progressoPct ?? 0) : 0,
+                liberado: alunoTurmaDoc.exists ? Boolean(alunoTurmaDoc.data().liberado) : false,
+                turma: { id: turmaDoc.id, ...turmaDoc.data() }
+            };
         })
     );
-    return turmas;
+    return turmas.filter(Boolean);
 };
 
 export const atualizarProgressoAluno = async (turmaId, alunoId, progressoPct) => {
     await db.collection(COLECAO).doc(turmaId)
         .collection('alunos').doc(alunoId)
-        .update({ progressoPct });
+        .set({ progressoPct }, { merge: true });
 };
 
 export const liberarAlunoParaProximaTurma = async (turmaId, alunoId) => {
@@ -253,11 +261,21 @@ export const salvarPdf = async (turmaId, conteudoId, dados) => {
 export const listarPdfs = async (turmaId, conteudoId) => {
     const snap = await db.collection(COLECAO).doc(turmaId)
         .collection('conteudos').doc(conteudoId)
-        .collection('pdfs').orderBy('criadoEm', 'asc').get();
-    return snap.docs.map(doc => ({
-        id:      doc.id,
-        nome:    doc.data().nome,
-        tamanho: doc.data().tamanho,
+        .collection('pdfs').get();
+    const pdfs = snap.docs.map(doc => {
+        const data = doc.data();
+        return {
+            id:       doc.id,
+            nome:     data.nome,
+            tamanho:  data.tamanho,
+            criadoEm: data.criadoEm ? (data.criadoEm.toDate ? data.criadoEm.toDate() : new Date(data.criadoEm)) : new Date(),
+        };
+    });
+    pdfs.sort((a, b) => a.criadoEm - b.criadoEm);
+    return pdfs.map(({ id, nome, tamanho }) => ({
+        id,
+        nome,
+        tamanho,
     }));
 };
 

@@ -9,12 +9,22 @@ import {
     adicionarConteudo, listarConteudos, atualizarConteudo, deletarConteudo,
     salvarPdf, listarPdfs, buscarPdfCompleto, deletarPdf,
 } from '../models/turmaModel.js';
+import { recalcularProgressoTurma } from '../models/progressoModel.js';
 import crypto from 'crypto';
 
 
-// ─── Helper: gera código único no formato IARA-XXXX ──────────────────────────
+// ─── Helper: gera código único de 5 caracteres (3 letras + 2 números) ─────────
 function gerarCodigo() {
-    return 'IARA-' + crypto.randomBytes(2).toString('hex').toUpperCase();
+    const letras = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const numeros = '0123456789';
+    let codigo = '';
+    for (let i = 0; i < 3; i++) {
+        codigo += letras[Math.floor(Math.random() * letras.length)];
+    }
+    for (let i = 0; i < 2; i++) {
+        codigo += numeros[Math.floor(Math.random() * numeros.length)];
+    }
+    return codigo;
 }
 
 // ─── Cria turmas padrão para novos professores ─────────────────────────────
@@ -202,7 +212,14 @@ export const entrarNaTurmaService = async (alunoId, codigo) => {
 
 //! Lista todas as turmas em que o aluno está matriculado
 export const listarTurmasAlunoService = async (alunoId) => {
-    return await listarTurmasDoAluno(alunoId);
+    const turmas = await listarTurmasDoAluno(alunoId);
+
+    return Promise.all(
+        turmas.map(async (turma) => {
+            const progressoPct = await recalcularProgressoTurma(turma.turmaId, alunoId);
+            return { ...turma, progressoPct };
+        })
+    );
 };
 
 //! Busca turma por código (pública para alunos poderem buscar antes de entrar)
