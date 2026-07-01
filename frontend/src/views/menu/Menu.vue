@@ -8,11 +8,6 @@
       </div>
     </div>
     
-    <BackButton
-      button-class="fixed top-12 left-5 z-[1000] w-10 h-10 flex items-center justify-center bg-white/10 backdrop-blur-md border border-white/15 text-white rounded-full cursor-pointer transition-all duration-300 hover:bg-cyan-400 hover:border-cyan-400 hover:text-[#420583] hover:scale-105 active:scale-95 btn-voltar-hover"
-      @click="modal.visible = true"
-    />
-
     <div v-if="modal.visible" class="fixed inset-0 bg-black/60 flex items-center justify-center z-[2000] backdrop-blur-sm animate-fadeIn">
       <div class="bg-white rounded-3xl p-8 w-85 h-22 shadow-2xl text-center">
         <h3 class="font-['Quicksand'] font-bold text-[#420583] text-2xl mb-2">Sair da conta?</h3>
@@ -25,7 +20,7 @@
     </div>
 
     <!-- Seção Superior adaptada para não esmagar em viewports de 667px de altura -->
-    <div class="metadeSuperior flex-shrink-0 min-h-[40vh] sm:min-h-[45vh] w-full flex flex-col items-center justify-center relative overflow-visible lg:top-[2%] pt-8 pb-4 sm:py-0">
+    <div class="metadeSuperior flex-shrink-0 min-h-[40vh] sm:min-h-[45vh] lg:min-h-[32vh] w-full flex flex-col items-center justify-center relative overflow-visible lg:top-[2%] pt-8 pb-4 sm:py-0">
       <div class="saudacaoContainer text-center z-10 animate-fadeIn">
         <h1 class="textoSaudacao font-['Quicksand'] text-white font-light text-[2rem] m-0">
           Olá, <span class="nomeDestaque text-aqua font-bold capitalize">{{ nomeUsuario }}</span>!👋
@@ -49,16 +44,16 @@
     </div>
 
     <!-- CONTAINER BRANCO: Ajustado com flex-1, pb-12 e min-h-fit para expandir conforme os elementos contidos e manter a frase guardada dentro dele -->
-    <div class="estruturaInferior flex-1 w-[100%] h-[100%] bg-[#f0f4f8] flex flex-col items-center justify-between p-5 pt-4 pb-12 box-border relative z-10 ">
+    <div class="estruturaInferior flex-1 w-[100%] h-[100%] bg-[#f0f4f8] flex flex-col items-center justify-between p-5 pt-4 pb-12 lg:pb-6 box-border relative z-10 ">
       
       <!-- Grid de cards centralizado e ajustado -->
-      <div class="grid-cards grid grid-cols-1 md:grid-cols-2 justify-items-center justify-center gap-[15px] md:gap-[24px] w-full max-w-5xl mt-2 mb-6">
+      <div class="grid-cards grid grid-cols-1 md:grid-cols-2 justify-items-center justify-center gap-[15px] md:gap-[16px] w-full max-w-5xl md:max-w-[820px] lg:max-w-[940px] mt-2 mb-6 lg:mb-3">
         
         <div 
           v-for="card in cards" 
           :key="card.titulo" 
           @click="irPara(card.rota)" 
-          class="card-item bg-gradient-to-br from-white to-gray-50 rounded-[16px] md:rounded-[24px] shadow-[0_8px_16px_rgba(0,0,0,0.1)] md:shadow-[0_10px_30px_rgba(0,0,0,0.04)] flex flex-row items-center cursor-pointer transition-all duration-300 hover:translate-y-[-4px] md:hover:translate-y-[-6px] hover:shadow-[0_12px_24px_rgba(0,0,0,0.15)] md:hover:shadow-[0_20px_40px_rgba(0,0,0,0.08)] text-left p-4 relative overflow-hidden md:flex-col md:items-center md:text-center md:p-6 lg:p-8 md:justify-between min-h-[110px] md:h-[350px] lg:h-[350px]"
+          class="card-item w-full md:max-w-[400px] lg:max-w-[460px] bg-gradient-to-br from-white to-gray-50 rounded-[16px] md:rounded-[24px] shadow-[0_8px_16px_rgba(0,0,0,0.1)] md:shadow-[0_10px_30px_rgba(0,0,0,0.04)] flex flex-row items-center cursor-pointer transition-all duration-300 hover:translate-y-[-4px] md:hover:translate-y-[-6px] hover:shadow-[0_12px_24px_rgba(0,0,0,0.15)] md:hover:shadow-[0_20px_40px_rgba(0,0,0,0.08)] text-left p-4 relative overflow-hidden md:flex-col md:items-center md:text-center md:p-6 lg:p-8 md:justify-between min-h-[110px] md:h-[350px] lg:h-[350px]"
         >  
           <div class="absolute left-0 top-0 bottom-0 w-[5px] rounded-l-[16px] md:hidden" :style="{ backgroundColor: card.borderColor }"></div>
           
@@ -74,13 +69,13 @@
             <h6 class="card-titulo text-[#1E1B4B] font-['Quicksand'] font-bold !text-[15px] md:!text-[22px] leading-snug mb-1 md:mb-2">
               {{ card.titulo }}
             </h6>
-            <p class="text-gray-600 font-['Quicksand'] !text-[14px] md:text-slate-500 md:font-medium leading-snug md:leading-relaxed line-clamp-2 md:line-clamp-none md:max-w-[250px]">
+            <p class="text-gray-600 font-['Quicksand'] !text-[14px] md:text-slate-500 md:font-medium leading-snug md:leading-relaxed line-clamp-2 md:line-clamp-none md:max-w-[300px] lg:max-w-[360px]">
               {{ card.descricao }}
             </p>
           </div>
           
           <div 
-            class="flex-shrink-0 w-10 h-10 relative lg: -top-[10%]  md:w-28 md:h-10 rounded-full md:rounded-2xl flex items-center justify-center ml-3 md:ml-0 md:mx-auto md:mt-2 shadow-md transition-transform duration-300 hover:scale-110" 
+            class="flex-shrink-0 w-10 h-10 relative top-[4px] md:top-0 lg:-top-[10%] md:w-28 md:h-10 rounded-full md:rounded-2xl flex items-center justify-center ml-3 md:ml-0 md:mx-auto md:mt-2 shadow-md transition-transform duration-300 hover:scale-110" 
             :style="{ backgroundColor: card.borderColor }"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="md:w-5 md:h-5">
@@ -91,7 +86,7 @@
       </div>
 
       <!-- FRASE ATUALIZADA -->
-      <div class="bg-slate-50 border border-gray-200/60 rounded-2xl p-4 flex items-center justify-center gap-2 shadow-[0_4px_12px_rgba(0,0,0,0.03)] text-center -mt-2 xs:mt-2 md:mt-12 mb-4 w-full max-w-[95%] md:max-w-2xl lg:h-[3rem] relative z-20">
+      <div class="bg-slate-50 border border-gray-200/60 rounded-2xl p-4 flex items-center justify-center gap-2 shadow-[0_4px_12px_rgba(0,0,0,0.03)] text-center -mt-2 xs:mt-2 md:mt-12 mb-4 w-full max-w-[95%] md:max-w-2xl lg:h-[3rem] relative -top-3 sm:top-0 z-20">
         <i class="fa-solid fa-star text-amber-400 text-sm md:text-base animate-pulse flex-shrink-0"></i>
         <p class="font-['Quicksand'] font-medium text-gray-600 text-[11px] xs:text-xs md:text-sm tracking-wide m-0">
           "O conhecimento transforma o mundo. Continue evoluindo com a IAra! "
@@ -135,8 +130,8 @@ onUnmounted(() => {
 
 const desktopBackgroundStyle = {
   backgroundImage: "url('/img/fundo.png')",
-  backgroundSize: 'contain',
-  backgroundPosition: 'center top',
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
   backgroundRepeat: 'no-repeat',
   backgroundAttachment: 'scroll'
 }
@@ -160,6 +155,7 @@ const mobileBackgroundStyle = {
 const backgroundStyle = computed(() => {
   if (isMobile.value) return mobileBackgroundStyle
   if (isTablet.value) return tabletBackgroundStyle
+  if (windowWidth.value >= 1400) return { backgroundImage: 'none' }
   return desktopBackgroundStyle
 })
 
@@ -227,11 +223,17 @@ const irPara = async (rota) => {
   }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 1024px) and (max-width: 1399px) {
   .bg-fundo-default {
     background-image: url('/img/fundo.png');
     background-size: cover;
     background-position: center;
+  }
+}
+
+@media (min-width: 1400px) {
+  .bg-fundo-default {
+    background-image: none !important;
   }
 }
 
@@ -307,9 +309,9 @@ const irPara = async (rota) => {
 @media (min-width: 1024px) {
   .saudacaoContainer { position: relative; bottom: 0%; }
   .logoIaraMenu {
-    height: 68vh;
+    height: 44vh;
     position: relative;
-    bottom: 5%;
+    bottom: 2%;
     left: 0 !important;
   }
 
@@ -320,7 +322,7 @@ const irPara = async (rota) => {
   }
   .grid-cards {
     padding: 20px;
-    gap: 25px; 
+    gap: 16px; 
   }
 }
 </style>

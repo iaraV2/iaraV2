@@ -57,10 +57,15 @@
       </header>
 
       <section class="w-full max-w-[92%] flex flex-col gap-3 px-1 mt-8 relative top-8">
+<div
+  v-for="aula in curso.aulasSemana"
+  :key="aula.id"
+  class="rounded-2xl transition-all duration-500 bg-transparent"
+  :style="(aula.progressoAula?.progresso ?? 0) >= 100 ? {} : estiloBordaProgresso(aula.progressoAula?.progresso ?? 0)"
+  :class="{ 'borda-concluida': (aula.progressoAula?.progresso ?? 0) >= 100 }"
+>
         <article
-          v-for="aula in curso.aulasSemana"
-          :key="aula.id"
-          class="bg-white rounded-2xl p-4 shadow-xl flex flex-col gap-6"
+          class="bg-white rounded-[14px] p-4 shadow-xl flex flex-col gap-6"
         >
           <div class="flex items-start gap-2">
             <div class="min-w-0 flex-1 relative left-2 top-2">
@@ -70,6 +75,18 @@
               </div>
               <p class="text-gray-500 text-xs mt-1">Publicada em {{ formatarData(aula.dataLancamento) }}</p>
             </div>
+          <label
+  v-if="!isProfessor"
+  class="shrink-0 flex items-center justify-center w-8 h-8 cursor-pointer mt-1 mr-2"
+  :title="aula.progressoAula?.concluidoManual ? 'Marcada como concluída' : 'Marcar como concluída'"
+>
+  <input
+    type="checkbox"
+    class="w-5 h-5 appearance-none border-2 border-gray-300 rounded-full checked:bg-green-500 checked:border-green-500 cursor-pointer transition-all flex items-center justify-center after:content-['✓'] after:text-white after:text-xs after:font-bold after:hidden checked:after:block"
+    :checked="aula.progressoAula?.concluidoManual || (aula.progressoAula?.progresso ?? 0) >= 100"
+    @change="toggleConcluido(aula, $event)"
+  />
+</label>
           </div>
           <div class="flex justify-center items-center gap-2 pr-0 relative bottom-2">
             <button
@@ -94,10 +111,11 @@
               @click="acessarAula(aula)"
               class="font-bold py-1.5 px-6 rounded-full transition-colors min-w-[70px] text-sm bg-orange-500 text-white hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Acessar
+              {{ textoBotaoAula(aula) }}
             </button>
           </div>
         </article>
+        </div>
       </section>
     </template>
 
@@ -108,7 +126,19 @@
 
     
 
-    <SalaBottomNav />
+    <!-- Modal de Logout -->
+    <div v-if="mostrarModalLogout" class="fixed inset-0 bg-black/60 flex items-center justify-center z-[3000] backdrop-blur-sm animate-fadeIn">
+      <div class="bg-white rounded-3xl p-8 w-85 h-22 shadow-2xl text-center">
+        <h3 class="font-['Quicksand'] font-bold text-[#420583] text-2xl mb-2">Sair da conta?</h3>
+        <p class="font-['Quicksand'] text-gray-500 text-sm mb-6">Tem certeza que deseja se desconectar da IAra?</p>
+        <div class="flex justify-center gap-3">
+          <button @click="fecharModalLogout" class="w-28 py-3 rounded-full font-['Quicksand'] font-bold text-gray-600 bg-gray-200 hover:bg-gray-300 transition-colors">Não</button>
+          <button @click="efetuarLogout" class="w-28 py-3 rounded-full font-['Quicksand'] font-bold text-white bg-[#e25300] hover:bg-[#ff7b00] transition-colors">Sim, Sair</button>
+        </div>
+      </div>
+    </div>
+
+    <SalaBottomNav @abrirModalLogout="abrirModalLogout" />
 
     <!-- Modal Nova Aula (cadastro avulso) -->
     <div v-if="mostrarModalNovaAula" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[3000] p-4" @click.self="mostrarModalNovaAula = false">
@@ -116,13 +146,13 @@
         <h3 class="font-bold text-xl text-white text-center">Adicionar Aula</h3>
         <div class="flex flex-col gap-4">
           <div>
-            <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Tema da Aula</label>
-            <input v-model="novaAula.titulo" type="text" class="w-[90%] relative left-3 bg-white/10 border border-white/15 rounded-xl p-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400" placeholder="Digite o tema da aula">
-          </div>
-          <div>
-            <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Data de Publicação (dd/mm/aaaa)</label>
-            <input v-model="novaAula.dataLancamento" type="text" class="w-[90%] relative left-3 bg-white/10 border border-white/15 rounded-xl p-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400" placeholder="dd/mm/aaaa">
-          </div>
+  <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Tema da Aula</label>
+  <input v-model="novaAula.titulo" type="text" class="w-[90%] relative left-3 bg-white/10 border border-white/15 rounded-xl !pl-[9px] pr-3 py-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400 block" placeholder="Digite o tema da aula">
+</div>
+<div>
+  <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Data de Publicação (dd/mm/aaaa)</label>
+  <input v-model="novaAula.dataLancamento" type="text" class="w-[90%] relative left-3 bg-white/10 border border-white/15 rounded-xl !pl-[9px] pr-3 py-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400 block" placeholder="dd/mm/aaaa">
+</div>
           <div>
             <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Aula Liberada?</label>
             <div class="flex gap-4">
@@ -132,25 +162,28 @@
           </div>
           <div>
             <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Link do YouTube</label>
-            <input v-model="novaAula.videoId" type="text" class="w-[90%] relative left-3 bg-white/10 border border-white/15 rounded-xl p-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400" placeholder="Cole o link do YouTube">
+            <input v-model="novaAula.videoId" type="text" class="w-[90%] relative left-3 bg-white/10 border border-white/15 rounded-xl !pl-[9px] pr-3 py-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400 block" placeholder="Cole o link do YouTube">
           </div>
           <div>
-            <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Descrição</label>
-            <textarea v-model="novaAula.descricao" class="w-[90%] relative left-3 bg-white/10 border border-white/15 rounded-xl p-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400 h-20 resize-none" placeholder="O que você vai aprender nessa aula"></textarea>
-          </div>
-          <div>
-            <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Tópicos (separados por vírgula)</label>
-            <textarea v-model="novaAula.topicosTexto" class="w-[90%] relative left-3 bg-white/10 border border-white/15 rounded-xl p-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400 h-20 resize-none" placeholder="Tópico 1, Tópico 2, Tópico 3"></textarea>
-          </div>
+  <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Descrição</label>
+  <textarea v-model="novaAula.descricao" class="w-[90%] relative left-3 bg-white/10 border border-white/15 rounded-xl !pl-[9px] pr-3 pt-3 pb-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400 h-20 resize-none block" placeholder="O que você vai aprender nessa aula"></textarea>
+</div>
+<div>
+  <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Tópicos (separados por vírgula)</label>
+  <textarea v-model="novaAula.topicosTexto" class="w-[90%] relative left-3 bg-white/10 border border-white/15 rounded-xl !pl-[9px] pr-3 pt-3 pb-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400 h-20 resize-none block" placeholder="Tópico 1, Tópico 2, Tópico 3"></textarea>
+</div>
           <div class="relative left-0 -top-[0.5rem] w-[100%]">
             <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6 -top-[0rem]">Material Complementar (PDFs — máx. 700KB cada)</label>
             <input type="file" accept=".pdf,application/pdf" multiple @change="handlePdfUpload" class="w-[90%] relative left-3 bg-white/10 border border-white/15 rounded-2xl p-3 text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-cyan-400 file:text-[#420583] hover:file:bg-cyan-300">
             <div v-if="novaAula.pdfs.length > 0" class="mt-2 flex flex-col gap-1 relative left-3">
-              <div v-for="(pdf, i) in novaAula.pdfs" :key="i" class="text-white/60 text-xs flex items-center gap-2">
-                <span>📄 {{ pdf.name }}</span>
-                <span :class="pdf.size > MAX_PDF_BYTES ? 'text-red-400' : 'text-green-400'">
-                  {{ pdf.size > MAX_PDF_BYTES ? '⚠ Muito grande' : '✓' }}
-                </span>
+              <div v-for="(pdf, i) in novaAula.pdfs" :key="i" class="text-white/60 text-xs flex items-center justify-between w-[90%] bg-white/5 p-1 px-2 rounded-lg">
+                <div class="flex items-center gap-2">
+                  <span>📄 {{ pdf.name }}</span>
+                  <span :class="pdf.size > MAX_PDF_BYTES ? 'text-red-400' : 'text-green-400'">
+                    {{ pdf.size > MAX_PDF_BYTES ? '⚠ Muito grande' : '✓' }}
+                  </span>
+                </div>
+                <button type="button" @click="removerPdfNovo(i)" class="text-red-400 hover:text-red-500 font-bold px-2 cursor-pointer transition-colors" title="Remover">✕</button>
               </div>
             </div>
           </div>
@@ -168,15 +201,15 @@
         <h3 class="font-bold text-xl text-white text-center">Editar Aula</h3>
         
         <div class="flex flex-col gap-4">
-          <div>
-            <label class="text-white/80 text-2 block relative-2 block relative left-6">Tema da Aula</label>
-            <input v-model="aulaEditando.titulo" type="text" class="w-[90%] relative left-3 bg-white/10 border border-white/15 rounded-xl p-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400" placeholder="Digite o tema da aula ">
-          </div>
-          
-          <div>
-            <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Data de Publicação (dd/mm/aaaa)</label>
-            <input v-model="aulaEditando.dataLancamento" type="text" class="w-[90%] relative left-3 bg-white/10 border border-white/15 rounded-xl p-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400" placeholder="dd/mm/aaaa">
-          </div>
+<div>
+  <label class="text-white/80 text-2 block relative-2 block relative left-5">Tema da Aula</label>
+  <input v-model="aulaEditando.titulo" type="text" class="w-[90%] relative left-3 bg-white/10 border border-white/15 rounded-xl !pl-[9px] pr-3 py-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400 block" placeholder="Digite o tema da aula ">
+</div>
+ 
+<div>
+  <label class="text-white/80 text-sm font-semibold mb-2 block relative left-5.5">Data de Publicação (dd/mm/aaaa)</label>
+  <input v-model="aulaEditando.dataLancamento" type="text" class="w-[90%] relative left-3 bg-white/10 border border-white/15 rounded-xl !pl-[9px] pr-3 py-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400 block" placeholder="dd/mm/aaaa">
+</div>
           
           <div>
             <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Aula Liberada?</label>
@@ -186,30 +219,33 @@
             </div>
           </div>
           
-          <div>
-            <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Link do YouTube</label>
-            <input v-model="aulaEditando.videoId" type="text" class="w-[90%] relative left-3 bg-white/10 border border-white/15 rounded-xl p-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400" placeholder="Cole o link do YouTube">
-          </div>
-          
-          <div>
-            <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Descrição</label>
-            <textarea v-model="aulaEditando.descricao" class="w-[90%] relative left-3 bg-white/10 border border-white/15 rounded-xl p-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400 h-20 resize-none" placeholder="O que você vai aprender nessa aula"></textarea>
-          </div>
-          
-          <div>
-            <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Tópicos (separados por vírgula)</label>
-            <textarea v-model="aulaEditando.topicosTexto" class=" w-[90%] relative  left-3 bg-white/10 border border-white/15 rounded-xl p-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400 h-20 resize-none" placeholder="Tópico 1, Tópico 2, Tópico 3"></textarea>
-          </div>
+<div>
+  <label class="text-white/80 text-sm font-semibold mb-2 block relative left-5.5">Link do YouTube</label>
+  <input v-model="aulaEditando.videoId" type="text" class="w-[90%] relative left-3 bg-white/10 border border-white/15 rounded-xl !pl-[9px] pr-3 py-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400 block" placeholder="Cole o link do YouTube">
+</div>
+ 
+<div>
+  <label class="text-white/80 text-sm font-semibold mb-2 block relative left-5.5">Descrição</label>
+  <textarea v-model="aulaEditando.descricao" class="w-[90%] relative left-3 bg-white/10 border border-white/15 rounded-xl !pl-[9px] pr-3 pt-3 pb-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400 h-20 resize-none block" placeholder="O que você vai aprender nessa aula"></textarea>
+</div>
+ 
+<div>
+  <label class="text-white/80 text-sm font-semibold mb-2 block relative left-5.5">Tópicos (separados por vírgula)</label>
+  <textarea v-model="aulaEditando.topicosTexto" class="w-[90%] relative left-3 bg-white/10 border border-white/15 rounded-xl !pl-[9px] pr-3 pt-3 pb-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400 h-20 resize-none block" placeholder="Tópico 1, Tópico 2, Tópico 3"></textarea>
+</div>
  <div class="relative left-0 -top-[0.5rem] w-[100%]">
             
             <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6 -top-[0rem]">Adicionar PDFs (máx. 700KB cada)</label>
             <input type="file" accept=".pdf,application/pdf" multiple @change="handlePdfUploadEdicao" class="w-[90%] relative left-3 bg-white/10 border border-white/15 rounded-2xl p-3 text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-cyan-400 file:text-[#420583] hover:file:bg-cyan-300">
             <div v-if="aulaEditando.pdfsNovos?.length" class="mt-2 flex flex-col gap-1 relative left-3 ">
-              <div v-for="(pdf, i) in aulaEditando.pdfsNovos" :key="i" class="text-white/60 text-xs flex items-center gap-2">
-                <span>📄 {{ pdf.name }}</span>
-                <span :class="pdf.size > MAX_PDF_BYTES ? 'text-red-400' : 'text-green-400'">
-                  {{ pdf.size > MAX_PDF_BYTES ? '⚠ Muito grande' : '✓' }}
-                </span>
+              <div v-for="(pdf, i) in aulaEditando.pdfsNovos" :key="i" class="text-white/60 text-xs flex items-center justify-between w-[90%] bg-white/5 p-1 px-2 rounded-lg">
+                <div class="flex items-center gap-2">
+                  <span>📄 {{ pdf.name }}</span>
+                  <span :class="pdf.size > MAX_PDF_BYTES ? 'text-red-400' : 'text-green-400'">
+                    {{ pdf.size > MAX_PDF_BYTES ? '⚠ Muito grande' : '✓' }}
+                  </span>
+                </div>
+                <button type="button" @click="removerPdfEdicao(i)" class="text-red-400 hover:text-red-500 font-bold px-2 cursor-pointer transition-colors" title="Remover">✕</button>
               </div>
             </div>
           </div>
@@ -225,18 +261,19 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onActivated, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import BackButton from '../../components/ui/BackButton.vue'
 import IconLock from '../../components/ui/IconLock.vue'
 import FooterAnjos from '../../components/sala/FooterAnjos.vue'
 import SalaBottomNav from '../../components/sala/SalaBottomNav.vue'
 import { formatarData } from '../../composables/formatarData.js'
+import { calcularProgressoTurma, estiloBordaProgresso, progressoPadrao, calcularProgressoAula } from '../../composables/useProgressoAula.js'
 import { useAuthStore } from '../../stores/auth.js'
 import {
   buscarAulasPorTurmaId, buscarTurmaPorId, atualizarAula,
   excluirAula as deletarAulaApi, salvarAulaNaTurma, uploadPdf, mapearTurmaParaCard,
-  buscarProgressoAula, zerarProgressoProfessor as zerarProgressoProfessorApi,
+  buscarProgressoAula, buscarProgressoTurma, salvarProgressoAula,
 } from '../../services/firebase.js'
 
 const MAX_PDF_BYTES = 700 * 1024
@@ -247,11 +284,36 @@ const props = defineProps({
 
 const router = useRouter()
 const authStore = useAuthStore()
+const mostrarModalLogout = ref(false)
 const curso = ref(null)
 const turmaDoBackend = ref(false)
 const carregando = ref(true)
 const erroCarregamento = ref(false)
 const isProfessor = computed(() => authStore.usuario?.role === 'professor')
+
+const progressoTurma = computed(() => {
+  if (!curso.value?.aulasSemana?.length) return 0
+  return calcularProgressoTurma(curso.value.aulasSemana)
+})
+
+async function carregarProgressoAulas(aulas) {
+  if (isProfessor.value || !aulas.length) {
+    return aulas.map(a => ({ ...a, progressoAula: progressoPadrao() }))
+  }
+
+  const { progressoPorAula } = await buscarProgressoTurma(String(props.salaId))
+
+  return aulas.map(a => {
+    const salvo = progressoPorAula?.[a.id] || progressoPadrao()
+    return {
+      ...a,
+      progressoAula: {
+        ...salvo,
+        progresso: salvo.progresso ?? calcularProgressoAula(salvo),
+      },
+    }
+  })
+}
 const mostrarModalEditarAula = ref(false)
 const mostrarModalNovaAula = ref(false)
 const aulaEditando = ref(null)
@@ -273,19 +335,15 @@ async function carregarAulas() {
       turmaDoBackend.value = true
       const aulas = await buscarAulasPorTurmaId(String(props.salaId))
       
-      const aulasComProgresso = await Promise.all(
-        aulas.map(async (a) => {
-          const progresso = { videoAssistido: false, pdfVisualizado: false, pdfBaixado: false, progresso: 0 }
-          return {
-            ...a,
-            videoId: extrairVideoIdDeLink(a.link || ''),
-            liberado: a.liberado ?? true,
-            topicos: Array.isArray(a.topicos) ? a.topicos : [],
-            dataLancamento: a.dataLancamento || '',
-            descricao: a.descricao || '',
-            progressoAula: progresso
-          }
-        })
+      const aulasComProgresso = await carregarProgressoAulas(
+        aulas.map(a => ({
+          ...a,
+          videoId: extrairVideoIdDeLink(a.link || ''),
+          liberado: a.liberado ?? true,
+          topicos: Array.isArray(a.topicos) ? a.topicos : [],
+          dataLancamento: a.dataLancamento || '',
+          descricao: a.descricao || '',
+        }))
       )
       
       curso.value = {
@@ -299,7 +357,6 @@ async function carregarAulas() {
     console.error('Erro ao buscar turma no backend:', error)
     erroCarregamento.value = true
   } finally {
-    await new Promise(resolve => setTimeout(resolve, 1500))
     carregando.value = false
   }
 }
@@ -312,6 +369,19 @@ function recarregarAulas() {
 onMounted(async () => {
   await carregarAulas()
 })
+
+onActivated(async () => {
+  if (curso.value && !carregando.value) {
+    await recarregarProgresso()
+  }
+})
+
+async function recarregarProgresso() {
+  if (!curso.value?.aulasSemana?.length || isProfessor.value) return
+
+  const aulasAtualizadas = await carregarProgressoAulas(curso.value.aulasSemana)
+  curso.value.aulasSemana = aulasAtualizadas
+}
 
 function extrairVideoIdDeLink(link) {
   if (!link) return 'dQw4w9WgXcQ'
@@ -336,7 +406,7 @@ function acessarAula(aula) {
       id: `${c.id}-${aula.id}`,
       titulo: aula.titulo,
       nivel: c.nivel || 'Básico',
-      progresso: String(aula.progresso ?? c.progresso ?? 0),
+      progresso: String(aula.progressoAula?.progresso ?? 0),
       videoId: aula.videoId || c.videoId || 'dQw4w9WgXcQ',
     },
     query: {
@@ -420,9 +490,18 @@ function handlePdfUploadEdicao(event) {
   aulaEditando.value.pdfsNovos = Array.from(event.target.files || [])
 }
 
+function removerPdfNovo(index) {
+  novaAula.value.pdfs.splice(index, 1)
+}
+
+function removerPdfEdicao(index) {
+  aulaEditando.value.pdfsNovos.splice(index, 1)
+}
+
 function abrirModalEditarAula(aula) {
   aulaEditando.value = {
     ...aula,
+    videoId: aula.videoId ? `https://www.youtube.com/watch?v=${aula.videoId}` : '',
     topicosTexto: aula.topicos ? aula.topicos.join(', ') : '',
     pdfsNovos: [],
   }
@@ -491,10 +570,56 @@ async function salvarEdicaoAula() {
 }
 
 function textoBotaoAula(aula) {
-  const progresso = aula.progressoAula?.progresso || 0
-  if (progresso === 0) return 'Acessar'
-  if (progresso >= 100) return 'Rever'
+  const prog = aula.progressoAula?.progresso || 0
+  if (prog === 0) return 'Acessar'
+  if (prog >= 100) return 'Rever'
   return 'Continuar'
+}
+
+async function toggleConcluido(aula, event) {
+  const marcado = event.target.checked
+
+  const dados = marcado
+    ? {
+        videoAssistido: true,
+        pdfVisualizado: true,
+        pdfBaixado: true,
+        concluidoManual: true,
+      }
+    : {
+        videoAssistido: false,
+        pdfVisualizado: false,
+        pdfBaixado: false,
+        concluidoManual: false,
+      }
+
+  aula.progressoAula = {
+    ...dados,
+    progresso: marcado ? 100 : 0,
+  }
+
+  try {
+    const resultado = await salvarProgressoAula(String(props.salaId), aula.id, dados)
+    if (resultado?.progresso != null) {
+      aula.progressoAula.progresso = resultado.progresso
+    }
+  } catch (error) {
+    console.error('Erro ao salvar conclusão:', error)
+    await recarregarProgresso()
+  }
+}
+
+function abrirModalLogout() {
+  mostrarModalLogout.value = true
+}
+
+function fecharModalLogout() {
+  mostrarModalLogout.value = false
+}
+
+function efetuarLogout() {
+  authStore.logout()
+  fecharModalLogout()
 }
 
 </script>
@@ -505,5 +630,24 @@ function textoBotaoAula(aula) {
     padding-left: 0.75rem;
     padding-right: 0.75rem;
   }
+}
+
+@keyframes pulso-verde {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(34, 197, 94, 0.55), 0 0 2px rgba(74, 222, 128, 0.6);
+    background-position: 0% 50%;
+  }
+  50% {
+    box-shadow: 0 0 22px rgba(34, 197, 94, 0.95), 0 0 8px rgba(74, 222, 128, 0.9);
+    background-position: 100% 50%;
+  }
+}
+
+
+.borda-concluida {
+  background: #22c55e !important; /* Cor sólida verde padrão do Tailwind */
+  padding: 2px !important;         /* Define a espessura exata da borda como 2px */
+  box-shadow: none !important;     /* Garante que nenhum brilho neon apareça */
+  animation: none !important;     /* Impede qualquer tipo de animação */
 }
 </style>

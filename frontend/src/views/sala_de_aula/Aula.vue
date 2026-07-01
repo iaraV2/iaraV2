@@ -1,6 +1,6 @@
 <template>
 
-<div class="w-full flex flex-col items-center py-6 px-4 pb-48 font-['Quicksand'] text-white hide-scrollbar relative bg-[#380075]" style="height: 100dvh; overflow-y: auto; overflow-x: hidden;">
+<div class="w-full flex flex-col items-center py-6 px-4 pb-48 md:pb-[45vh] font-['Quicksand'] text-white hide-scrollbar relative bg-[#380075] container-aula" style="height: 100dvh; overflow-y: auto; overflow-x: hidden;">
     <div class="absolute top-20 left-10 w-64 h-64 bg-cyan-400/10 rounded-full blur-3xl pointer-events-none"></div>
     <div class="absolute bottom-40 right-10 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
     
@@ -46,9 +46,32 @@
 
 
 
-    <div class="w-[90%] max-w-4xl aspect-video bg-black rounded-[10px] overflow-hidden shadow-2xl mb-10 border border-white/10 relative top-[2rem]">
+    <div
+      class="w-[90%] max-w-4xl mb-10 relative top-[2rem]"
+    >
+      <div class="aspect-video bg-black rounded-[10px] overflow-hidden shadow-2xl border border-white/10 relative">
 
-      <iframe class="w-full h-full" :src="`https://www.youtube.com/embed/${videoId}`" :title="`Aula: ${titulo}`" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+      <div
+        v-if="!progressoAula.videoAssistido && !isProfessor"
+        class="absolute inset-0 z-10 flex items-center justify-center bg-black/40 cursor-pointer group"
+        @click="iniciarVideo"
+      >
+        <div class="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#420583" class="w-8 h-8 ml-1"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        </div>
+      </div>
+
+      <iframe
+        class="w-full h-full"
+        :class="{ 'pointer-events-none': !progressoAula.videoAssistido && !isProfessor }"
+        :src="`https://www.youtube.com/embed/${videoId}?enablejsapi=1`"
+        :title="`Aula: ${titulo}`"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowfullscreen
+      ></iframe>
+
+      </div>
 
     </div>
 
@@ -135,37 +158,23 @@
 
                 </div>
 
-                <div class="flex gap-2">
+                <div class="flex gap-2 justify-center w-full relative -top-2 ml-2">
+  <button
+    type="button"
+    @click="visualizarPdf(pdf)"
+    class="inline-flex items-center justify-center text-xs font-bold text-[#420583] bg-purple-100 hover:bg-purple-200 min-w-[80px] md:min-w-[100px] px-3 py-1 rounded-full transition-all"
+  >
+    {{ pdfVisualizandoId === pdf.id ? 'Fechar' : 'Visualizar' }}
+  </button>
 
-                  <button
-
-                    type="button"
-
-                    @click="visualizarPdf(pdf)"
-
-                    class="text-xs font-bold text-[#420583] bg-purple-100 hover:bg-purple-200 px-3 py-1 rounded-full transition-all"
-
-                  >
-
-                    {{ pdfVisualizandoId === pdf.id ? 'Ocultar' : 'Visualizar' }}
-
-                  </button>
-
-                  <button
-
-                    type="button"
-
-                    @click="fazerDownload(pdf)"
-
-                    class="text-xs font-bold text-[#420583] bg-cyan-100 hover:bg-cyan-200 px-3 py-1 rounded-full transition-all"
-
-                  >
-
-                    Baixar
-
-                  </button>
-
-                </div>
+  <button
+    type="button"
+    @click="fazerDownload(pdf)"
+    class="inline-flex items-center justify-center text-xs font-bold text-[#420583] bg-cyan-100 hover:bg-cyan-200 min-w-[80px] md:min-w-[100px] px-3 py-1 rounded-full transition-all"
+  >
+    Baixar
+  </button>
+</div>
 
               </div>
 
@@ -205,7 +214,19 @@
     
   </div>
 
-  <SalaBottomNav />
+  <!-- Modal de Logout -->
+  <div v-if="mostrarModalLogout" class="fixed inset-0 bg-black/60 flex items-center justify-center z-[3000] backdrop-blur-sm animate-fadeIn">
+    <div class="bg-white rounded-3xl p-8 w-85 h-22 shadow-2xl text-center">
+      <h3 class="font-['Quicksand'] font-bold text-[#420583] text-2xl mb-2">Sair da conta?</h3>
+      <p class="font-['Quicksand'] text-gray-500 text-sm mb-6">Tem certeza que deseja se desconectar da IAra?</p>
+      <div class="flex justify-center gap-3">
+        <button @click="fecharModalLogout" class="w-28 py-3 rounded-full font-['Quicksand'] font-bold text-gray-600 bg-gray-200 hover:bg-gray-300 transition-colors">Não</button>
+        <button @click="efetuarLogout" class="w-28 py-3 rounded-full font-['Quicksand'] font-bold text-white bg-[#e25300] hover:bg-[#ff7b00] transition-colors">Sim, Sair</button>
+      </div>
+    </div>
+  </div>
+
+  <SalaBottomNav @abrirModalLogout="abrirModalLogout" />
 
 </template>
 
@@ -225,13 +246,21 @@ import SalaBottomNav from '../../components/sala/SalaBottomNav.vue'
 
 import { listarPdfs, obterPdfBlob, baixarPdf, buscarAulaPorId, salvarProgressoAula, buscarProgressoAula } from '../../services/firebase.js'
 
+import { useAuthStore } from '../../stores/auth.js'
+
+import { calcularProgressoAula, estiloBordaProgresso } from '../../composables/useProgressoAula.js'
+
 
 
 const router = useRouter()
 
 const route = useRoute()
 
+const authStore = useAuthStore()
+
 const { favoritos, salvarFavoritos } = useFavoritos()
+
+const mostrarModalLogout = ref(false)
 
 
 
@@ -243,9 +272,20 @@ const progresso = ref(route.params.progresso || 0)
 
 const videoId = ref(route.params.videoId || 'dQw4w9WgXcQ')
 
-const turmaId = ref(route.query.turmaId || '')
+const routeId = route.params.id || ''
+let parsedTurmaId = route.query.turmaId || ''
+let parsedConteudoId = route.query.conteudoId || ''
 
-const conteudoId = ref(route.query.conteudoId || '')
+if (!parsedTurmaId && !parsedConteudoId && routeId.includes('-')) {
+  const parts = routeId.split('-')
+  if (parts.length >= 2) {
+    parsedTurmaId = parts[0]
+    parsedConteudoId = parts.slice(1).join('-')
+  }
+}
+
+const turmaId = ref(parsedTurmaId)
+const conteudoId = ref(parsedConteudoId)
 
 
 
@@ -256,6 +296,7 @@ const topicosDaAula = ref(null)
 const descricaoDaAula = ref(null)
 
 const carregandoPdfs = ref(false)
+const pdfsCarregados = ref(false)
 
 const pdfVisualizandoId = ref(null)
 
@@ -268,8 +309,12 @@ const progressoAula = ref({
   videoAssistido: false,
   pdfVisualizado: false,
   pdfBaixado: false,
+  concluidoManual: false,
   progresso: 0
 })
+
+const isProfessor = computed(() => authStore.usuario?.role === 'professor')
+const salvandoProgresso = ref(false)
 
 const temIdsParaPdf = computed(() => Boolean(turmaId.value && conteudoId.value))
 
@@ -309,41 +354,47 @@ const topicos = computed(() => {
 
 
 onMounted(async () => {
+  const promessas = []
 
-  if (!temIdsParaPdf.value) return
-
-  carregandoPdfs.value = true
-
-  try {
-
-    const aula = await buscarAulaPorId(turmaId.value, conteudoId.value)
-
-    if (aula) {
-
-      if (Array.isArray(aula.topicos) && aula.topicos.length) {
-
-        topicosDaAula.value = aula.topicos
-
-      }
-
-      if (aula.descricao) descricaoDaAula.value = aula.descricao
-
-    }
-
-    pdfsDoBackend.value = await listarPdfs(turmaId.value, conteudoId.value)
-
-    configurarRastreamentoVideo()
-
-  } catch (error) {
-
-    console.error('Erro ao carregar dados da aula:', error)
-
-  } finally {
-
-    carregandoPdfs.value = false
-
+  if (turmaId.value && conteudoId.value && !isProfessor.value) {
+    promessas.push(
+      buscarProgressoAula(turmaId.value, conteudoId.value)
+        .then(salvo => {
+          progressoAula.value = { ...progressoPadrao(), ...salvo, progresso: salvo.progresso ?? calcularProgressoAula(salvo) }
+        })
+        .catch(error => console.error('Erro ao carregar progresso:', error))
+    )
   }
 
+  if (temIdsParaPdf.value) {
+    carregandoPdfs.value = true
+    promessas.push(
+      buscarAulaPorId(turmaId.value, conteudoId.value)
+        .then(aula => {
+          if (aula) {
+            if (Array.isArray(aula.topicos) && aula.topicos.length) {
+              topicosDaAula.value = aula.topicos
+            }
+            if (aula.descricao) descricaoDaAula.value = aula.descricao
+          }
+        })
+        .catch(error => console.error('Erro ao carregar dados da aula:', error))
+    )
+
+    promessas.push(
+      listarPdfs(turmaId.value, conteudoId.value)
+        .then(pdfs => {
+          pdfsDoBackend.value = pdfs
+        })
+        .catch(error => console.error('Erro ao carregar PDFsStrategic:', error))
+    )
+  }
+
+  if (promessas.length) {
+    await Promise.all(promessas)
+  }
+  carregandoPdfs.value = false
+  pdfsCarregados.value = true
 })
 
 
@@ -380,6 +431,7 @@ async function visualizarPdf(pdf) {
 
     if (!progressoAula.value.pdfVisualizado) {
       progressoAula.value.pdfVisualizado = true
+      await persistirProgresso()
     }
 
   } catch (error) {
@@ -408,6 +460,7 @@ async function fazerDownload(pdf) {
 
     if (!progressoAula.value.pdfBaixado) {
       progressoAula.value.pdfBaixado = true
+      await persistirProgresso()
     }
 
   } catch (error) {
@@ -450,30 +503,83 @@ function toggleFavorito() {
 
 
 
-function calcularProgresso() {
-  let progresso = 0
-  if (progressoAula.value.videoAssistido) progresso += 50
-  if (progressoAula.value.pdfVisualizado) progresso += 25
-  if (progressoAula.value.pdfBaixado) progresso += 25
-  return Math.min(progresso, 100)
-}
-
-async function atualizarProgresso() {
-  progressoAula.value.progresso = calcularProgresso()
-}
-
-function configurarRastreamentoVideo() {
-  const videoWatched = localStorage.getItem(`video_${turmaId.value}_${conteudoId.value}`)
-  if (videoWatched === 'true') {
-    progressoAula.value.videoAssistido = true
+function progressoPadrao() {
+  return {
+    videoAssistido: false,
+    pdfVisualizado: false,
+    pdfBaixado: false,
+    concluidoManual: false,
+    progresso: 0,
   }
 }
 
-function marcarVideoAssistido() {
-  if (!progressoAula.value.videoAssistido) {
-    progressoAula.value.videoAssistido = true
-    localStorage.setItem(`video_${turmaId.value}_${conteudoId.value}`, 'true')
+async function persistirProgresso() {
+  if (isProfessor.value || !turmaId.value || !conteudoId.value || salvandoProgresso.value) return
+
+  const temPdf = pdfsCarregados.value ? pdfsDoBackend.value.length > 0 : true
+  progressoAula.value.progresso = calcularProgressoAula(progressoAula.value, { temPdf })
+  salvandoProgresso.value = true
+
+  try {
+    const resultado = await salvarProgressoAula(turmaId.value, conteudoId.value, {
+      videoAssistido: progressoAula.value.videoAssistido,
+      pdfVisualizado: progressoAula.value.pdfVisualizado,
+      pdfBaixado: progressoAula.value.pdfBaixado,
+      concluidoManual: progressoAula.value.concluidoManual,
+    })
+    if (resultado?.progresso != null) {
+      progressoAula.value.progresso = resultado.progresso
+    }
+  } catch (error) {
+    console.error('Erro ao salvar progresso:', error)
+    alert('Não foi possível salvar seu progresso. Verifique sua conexão ou tente novamente.')
+  } finally {
+    salvandoProgresso.value = false
   }
+}
+
+async function iniciarVideo() {
+  if (isProfessor.value || progressoAula.value.videoAssistido) return
+
+  progressoAula.value.videoAssistido = true
+  await persistirProgresso()
+
+  // Envia comando de play ao player do YouTube usando postMessage
+  const iframe = document.querySelector('iframe')
+  if (iframe) {
+    iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*')
+  }
+}
+
+function abrirModalLogout() {
+  mostrarModalLogout.value = true
+}
+
+function fecharModalLogout() {
+  mostrarModalLogout.value = false
+}
+
+function efetuarLogout() {
+  authStore.logout()
+  fecharModalLogout()
 }
 
 </script>
+
+<style scoped>
+
+
+.borda-concluida {
+  background: #22c55e !important; /* Cor sólida verde */
+  padding: 2px !important;         /* Força a espessura de 2px */
+  box-shadow: none !important;     /* Remove o brilho */
+  animation: none !important;     /* Remove o pulso */
+}
+
+@media (min-width: 1024px) and (max-width: 1440px) {
+  .container-aula {
+    padding-bottom: 200px !important;
+  }
+}
+
+</style>

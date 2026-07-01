@@ -147,7 +147,7 @@ const chaveStorage = computed(() =>
 
 onMounted(() => {
   try {
-    const usuarioRaw = localStorage.getItem('iara_usuario')
+    const usuarioRaw = sessionStorage.getItem('iara_usuario')
     if (usuarioRaw) {
       const usuario = JSON.parse(usuarioRaw)
       roleUsuario.value  = usuario.role  || 'aluno'

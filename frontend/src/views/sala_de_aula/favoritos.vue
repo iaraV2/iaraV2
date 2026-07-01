@@ -56,7 +56,19 @@
       </div>
     </main>
 
-    <SalaBottomNav aba-ativa="favoritos" rotulo-favoritos=" Meus Favoritos" />
+    <!-- Modal de Logout -->
+    <div v-if="mostrarModalLogout" class="fixed inset-0 bg-black/60 flex items-center justify-center z-[3000] backdrop-blur-sm animate-fadeIn">
+      <div class="bg-white rounded-3xl p-8 w-85 h-22 shadow-2xl text-center">
+        <h3 class="font-['Quicksand'] font-bold text-[#420583] text-2xl mb-2">Sair da conta?</h3>
+        <p class="font-['Quicksand'] text-gray-500 text-sm mb-6">Tem certeza que deseja se desconectar da IAra?</p>
+        <div class="flex justify-center gap-3">
+          <button @click="fecharModalLogout" class="w-28 py-3 rounded-full font-['Quicksand'] font-bold text-gray-600 bg-gray-200 hover:bg-gray-300 transition-colors">Não</button>
+          <button @click="efetuarLogout" class="w-28 py-3 rounded-full font-['Quicksand'] font-bold text-white bg-[#e25300] hover:bg-[#ff7b00] transition-colors">Sim, Sair</button>
+        </div>
+      </div>
+    </div>
+
+    <SalaBottomNav aba-ativa="favoritos" rotulo-favoritos=" Meus Favoritos" @abrirModalLogout="abrirModalLogout" />
   </div>
 </template>
 
@@ -66,8 +78,26 @@ import BackButton from '../../components/ui/BackButton.vue'
 import SalaBottomNav from '../../components/sala/SalaBottomNav.vue'
 import { useFavoritos } from '../../composables/useFavoritos.js'
 import { useNavegacaoAula } from '../../composables/useNavegacaoAula.js'
+import { useAuthStore } from '../../stores/auth.js'
+import { ref } from 'vue'
 
 const router = useRouter()
+const authStore = useAuthStore()
 const { favoritos, removerFavorito } = useFavoritos()
 const { irParaAula } = useNavegacaoAula()
+
+const mostrarModalLogout = ref(false)
+
+function abrirModalLogout() {
+  mostrarModalLogout.value = true
+}
+
+function fecharModalLogout() {
+  mostrarModalLogout.value = false
+}
+
+function efetuarLogout() {
+  authStore.logout()
+  fecharModalLogout()
+}
 </script>

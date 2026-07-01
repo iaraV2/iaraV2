@@ -23,7 +23,7 @@ api.interceptors.request.use(
       config.url = config.url.replace(/^\/iara\/iara\//, '/iara/')
     }
 
-    const token = localStorage.getItem('iara_token')
+    const token = sessionStorage.getItem('iara_token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
@@ -42,8 +42,8 @@ api.interceptors.response.use(
 
     if (status === 401) {
       console.warn('[IAra] Sessão expirada ou inválida. Redirecionando para login.')
-      localStorage.removeItem('iara_token')
-      localStorage.removeItem('iara_usuario')
+      sessionStorage.removeItem('iara_token')
+      sessionStorage.removeItem('iara_usuario')
 
       if (!window.location.pathname.includes('/login')) {
         window.location.href = '/login?sessao=expirada'

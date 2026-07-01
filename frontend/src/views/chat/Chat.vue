@@ -1,5 +1,12 @@
 <template>
   <div class="chat-page-container fixed top-0 left-0 w-screen h-screen bg-[#380075] z-[9999] flex items-center justify-center font-['Quicksand'] overflow-hidden">
+    
+    <!-- Botão voltar (seta) fixado no canto superior esquerdo (apenas telas md/desktop) -->
+    <BackButton
+      button-class="fixed top-6 left-5 z-[10000] w-10 h-10 hidden md:flex items-center justify-center bg-white/10 backdrop-blur-md border border-white/15 text-white rounded-full cursor-pointer transition-all duration-300 hover:bg-cyan-400 hover:border-cyan-400 hover:text-[#420583] hover:scale-105 active:scale-95"
+      @click="router.push('/menu')"
+    />
+
     <div class="chat-window w-[95%] max-w-[1000px] h-[90vh] bg-[rgba(20,0,60,0.75)] backdrop-blur-[16px] border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] rounded-[25px] flex flex-col relative overflow-hidden">
 
       <!-- Header -->
@@ -14,11 +21,11 @@
           </div>
         </div>
         
-        <!-- Botão com o novo ícone de Home (Casa) mais moderno -->
+        <!-- Botão com o ícone de Home (Casa), visível APENAS em telas mobile (oculto em md) -->
         <button
           type="button"
           @click="router.push('/menu')"
-          class="w-8 h-8 relative right-[10px] flex-shrink-0 flex items-center justify-center bg-white/10 backdrop-blur-md border border-white/15 text-white rounded-full cursor-pointer transition-all duration-300 hover:bg-cyan-400 hover:border-cyan-400 hover:text-[#420583] hover:scale-105 active:scale-95"
+          class="flex md:hidden w-8 h-8 relative right-[10px] flex-shrink-0 items-center justify-center bg-white/10 backdrop-blur-md border border-white/15 text-white rounded-full cursor-pointer transition-all duration-300 hover:bg-cyan-400 hover:border-cyan-400 hover:text-[#420583] hover:scale-105 active:scale-95"
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" class="w-[18px] h-[18px]">
             <path d="M19 21V9.753a1 1 0 0 0-.412-.813l-6-4.5a1 1 0 0 0-1.176 0l-6 4.5a1 1 0 0 0-.412.813V21a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1z"/>
@@ -83,6 +90,7 @@
 import { ref, onMounted, watch, nextTick, defineComponent, h } from 'vue'
 import { useRouter } from 'vue-router'
 import VueMarkdown from 'vue-markdown-render'
+import BackButton from '../../components/ui/BackButton.vue'
 import { api } from "../../services/api"
 
 const router = useRouter(), mensagens = ref([]), texto = ref(""), carregando = ref(false), fimDoChatRef = ref(null)

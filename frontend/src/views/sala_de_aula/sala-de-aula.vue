@@ -13,13 +13,23 @@
   
 
     <button
-      class="fixed top-8 left-5 z-[1000] w-10 h-10 flex items-center justify-center bg-white/10 backdrop-blur-md border border-white/15 text-white rounded-full cursor-pointer transition-all duration-300 hover:bg-cyan-400 hover:border-cyan-400 hover:text-[#420583] hover:scale-105 active:scale-95 btn-voltar-hover"
-      @click="router.push('/menu')"
+      class="fixed top-8 left-5 z-[1000] w-11 h-11 flex items-center justify-center bg-white/10 backdrop-blur-md border border-white/15 text-white rounded-full cursor-pointer transition-all duration-300 hover:bg-cyan-400 hover:border-cyan-400 hover:text-[#420583] hover:scale-105 active:scale-95 btn-voltar-hover font-bold text-xs"
+      @click="abrirModalLogout"
     >
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
-        <path d="M15 18l-6-6 6-6"/>
-      </svg>
+      SAIR
     </button>
+
+    <!-- Modal de Logout -->
+    <div v-if="mostrarModalLogout" class="fixed inset-0 bg-black/60 flex items-center justify-center z-[2000] backdrop-blur-sm animate-fadeIn">
+      <div class="bg-white rounded-3xl p-8 w-85 h-22 shadow-2xl text-center">
+        <h3 class="font-['Quicksand'] font-bold text-[#420583] text-2xl mb-2">Sair da conta?</h3>
+        <p class="font-['Quicksand'] text-gray-500 text-sm mb-6">Tem certeza que deseja se desconectar da IAra?</p>
+        <div class="flex justify-center gap-3">
+          <button @click="fecharModalLogout" class="w-28 py-3 rounded-full font-['Quicksand'] font-bold text-gray-600 bg-gray-200 hover:bg-gray-300 transition-colors">Não</button>
+          <button @click="efetuarLogout" class="w-28 py-3 rounded-full font-['Quicksand'] font-bold text-white bg-[#e25300] hover:bg-[#ff7b00] transition-colors">Sim, Sair</button>
+        </div>
+      </div>
+    </div>
 
     <div class="w-full text-center mt-16 mb-8 shrink-0 relative">
       <button v-if="isProfessor" @click="abrirModalNovaTurma"
@@ -84,7 +94,7 @@
               <div class="w-[83%] mb-4">
                 <div class="flex justify-between text-sm mb-1">
                   <span class="text-gray-600">Progresso</span>
-                  <span class="font-bold text-[#420583]">{{ c.progresso }}%</span>
+                  <span class="font-bold text-[#420583]">{{ formatarProgresso(c.progresso) }}%</span>
                 </div>
                 <div class="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
                   <div class="h-full rounded-full transition-all duration-500 ease-out" :style="{ width: c.progresso + '%', backgroundColor: c.cor }"></div>
@@ -98,10 +108,10 @@
                     : 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700'
                 ]"
                 :style="c.progresso === 0 ? { backgroundColor: c.cor } : {}">
-                <svg v-if="c.progresso === 100" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg v-if="c.progresso >= 100" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
                 <svg v-else-if="c.progresso === 0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                 <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                {{ c.progresso === 100 ? 'Rever' : c.progresso === 0 ? 'Acessar' : 'Continuar' }}
+                {{ c.progresso >= 100 ? 'Rever' : c.progresso === 0 ? 'Acessar' : 'Continuar' }}
               </button>
             </div>
           </div>
@@ -115,7 +125,7 @@
     
     <FooterAnjos wrapper-class="mt-2 mb-6 shrink-0" img-class="w-32 opacity-70" />
 
-    <SalaBottomNav />
+    <SalaBottomNav @abrirModalLogout="abrirModalLogout" />
 
     <SalaModals
       :mostrarModalNovaTurma="mostrarModalNovaTurma"
@@ -189,6 +199,7 @@ const mostrarModalNovaTurma     = ref(false)
 const mostrarModalEditarTurma   = ref(false)
 const mostrarModalCodigoTurma   = ref(false)
 const mostrarModalInserirCodigo = ref(false)
+const mostrarModalLogout        = ref(false)
 
 // Formulários
 const etapa            = ref('turma')
@@ -278,6 +289,7 @@ async function recarregarCursos() {
         minhasTurmas.forEach(mt => {
           if (mt && mt.turmaId) {
             mapaProgresso[String(mt.turmaId)] = mt.progressoPct || 0
+            salvarTurmaDesbloqueada(String(mt.turmaId))
           }
         })
       }
@@ -548,6 +560,27 @@ function extrairVideoId(url) {
 
 function handlePdfUpload(event) {
   novaAula.value.pdfs = Array.from(event.target.files)
+}
+
+function formatarProgresso(valor) {
+  if (valor === undefined || valor === null) return '0'
+  const num = Number(valor)
+  if (isNaN(num)) return '0'
+  if (Number.isInteger(num)) return String(num)
+  return num.toFixed(2).replace('.', ',')
+}
+
+function abrirModalLogout() {
+  mostrarModalLogout.value = true
+}
+
+function fecharModalLogout() {
+  mostrarModalLogout.value = false
+}
+
+function efetuarLogout() {
+  authStore.logout()
+  fecharModalLogout()
 }
 
 onMounted(() => {

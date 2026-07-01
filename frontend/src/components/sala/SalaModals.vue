@@ -13,17 +13,17 @@
       <!-- Etapa: dados da turma -->
       <div v-if="etapa === 'turma'" class="flex flex-col gap-4">
         <div>
-          <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Nome da Sala</label>
-          <input :value="novaTurma.titulo" @input="$emit('update:novaTurma', { ...novaTurma, titulo: $event.target.value })"
-            type="text" class="w-[90%] relative left-3.5 bg-white/10 border border-white/15 rounded-xl p-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400"
-            placeholder="Digite o nome da sala">
-        </div>
+  <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Nome da Sala</label>
+  <input :value="novaTurma.titulo" @input="$emit('update:novaTurma', { ...novaTurma, titulo: $event.target.value })"
+    type="text" class="w-[90%] relative left-3.5 bg-white/10 border border-white/15 rounded-xl !pl-[9px] pr-3 py-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400 block"
+    placeholder="Digite o nome da sala">
+</div>
         <div>
-          <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Código da Sala</label>
-          <input :value="novaTurma.codigo" type="text" readonly
-            class="w-[90%] relative left-3.5 bg-white/5 border border-white/15 rounded-xl p-3 text-cyan-400 font-bold tracking-wider focus:outline-none"
-            placeholder="Código gerado automaticamente">
-        </div>
+  <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Código da Sala</label>
+  <input :value="novaTurma.codigo" type="text" readonly
+    class="w-[90%] relative left-3.5 bg-white/5 border border-white/15 rounded-xl !pl-[9px] pr-3 py-3 text-cyan-400 font-bold tracking-wider focus:outline-none block"
+    placeholder="Código gerado automaticamente">
+</div>
         <div>
           <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Cor da Sala</label>
           <div class="flex gap-2 flex-wrap w-[90%] relative left-3.5">
@@ -45,63 +45,62 @@
             </button>
           </div>
         </div>
-        <div class="relative bottom-2.5">
-          <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Nível</label>
-          <select :value="novaTurma.nivel" @change="$emit('update:novaTurma', { ...novaTurma, nivel: $event.target.value })"
-            class="w-[90%] relative left-3.5 bg-[#420583] border border-cyan-400 rounded-xl p-3 text-white focus:outline-none focus:border-cyan-400">
-            <option value="Iniciante">Iniciante</option>
-            <option value="Intermediário">Intermediário</option>
-            <option value="Avançado">Avançado</option>
-            <option value="Essencial">Essencial</option>Adicionar Aula
-            <option value="Criativo">Criativo</option>
-            <option value="Básico">Básico</option>
-          </select>
-        </div>
-      </div>
-
+    <div class="relative bottom-2.5">
+      <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Nível</label>
+      <select :value="novaTurma.nivel" @change="$emit('update:novaTurma', { ...novaTurma, nivel: $event.target.value })"
+        class="w-[90%] relative left-3.5 bg-[#420583] border border-cyan-400 rounded-xl !pl-[9px] pr-3 py-3 text-white focus:outline-none focus:border-cyan-400 block appearance-none">
+        <option value="Iniciante">Iniciante</option>
+        <option value="Intermediário">Intermediário</option>
+        <option value="Avançado">Avançado</option>
+        <option value="Essencial">Essencial</option>
+        <option value="Criativo">Criativo</option>
+        <option value="Básico">Básico</option>
+      </select>
+    </div>
+  </div>
       <!-- Etapa: dados da aula -->
       <div v-if="etapa === 'aula'" class="flex flex-col gap-4">
         <div>
-          <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Tema da Aula</label>
-          <input :value="novaAula.titulo" @input="$emit('update:novaAula', { ...novaAula, titulo: $event.target.value })"
-            type="text" class="w-[90%] relative left-3.5 bg-white/10 border border-white/15 rounded-xl p-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400"
-            placeholder="Digite o tema da aula">
-        </div>
+  <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Tema da Aula</label>
+  <input :value="novaAula.titulo" @input="$emit('update:novaAula', { ...novaAula, titulo: $event.target.value })"
+    type="text" class="w-[90%] relative left-3.5 bg-white/10 border border-white/15 rounded-xl !pl-[9px] pr-3 py-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400 block"
+    placeholder="Digite o tema da aula">
+</div>
+      <div>
+    <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Data de Publicação (dd/mm/aaaa)</label>
+    <input :value="novaAula.dataLancamento" @input="$emit('update:novaAula', { ...novaAula, dataLancamento: $event.target.value })"
+      type="text" class="w-[90%] relative left-3.5 bg-white/10 border border-white/15 rounded-xl !pl-[9px] pr-3 py-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400 block"
+      placeholder="dd/mm/aaaa">
+  </div>
+  <div>
+    <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Aula Liberada?</label>
+    <div class="flex gap-4">
+      <button @click="$emit('update:novaAula', { ...novaAula, liberado: true })"
+        class="w-[44%] py-3 rounded-xl font-semibold transition-all relative left-3.5"
+        :class="novaAula.liberado ? 'bg-green-500 text-white' : 'bg-white/10 text-white/60'">Sim</button>
+      <button @click="$emit('update:novaAula', { ...novaAula, liberado: false })"
+        class="w-[44%] py-3 rounded-xl font-semibold transition-all relative -right-1"
+        :class="!novaAula.liberado ? 'bg-red-500 text-white' : 'bg-white/10 text-white/60'">Não</button>
+    </div>
+  </div>
+<div>
+  <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Link do YouTube</label>
+  <input :value="novaAula.videoId" @input="$emit('update:novaAula', { ...novaAula, videoId: $event.target.value })"
+    type="text" class="w-[90%] relative left-3.5 bg-white/10 border border-white/15 rounded-xl !pl-[9px] pr-3 py-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400 block"
+    placeholder="Cole o link do YouTube">
+</div>
         <div>
-          <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Data de Publicação (dd/mm/aaaa)</label>
-          <input :value="novaAula.dataLancamento" @input="$emit('update:novaAula', { ...novaAula, dataLancamento: $event.target.value })"
-            type="text" class="w-[90%] relative left-3.5 bg-white/10 border border-white/15 rounded-xl p-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400"
-            placeholder="dd/mm/aaaa">
-        </div>
-        <div>
-          <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Aula Liberada?</label>
-          <div class="flex gap-4">
-            <button @click="$emit('update:novaAula', { ...novaAula, liberado: true })"
-              class="w-[44%] py-3 rounded-xl font-semibold transition-all relative left-3.5"
-              :class="novaAula.liberado ? 'bg-green-500 text-white' : 'bg-white/10 text-white/60'">Sim</button>
-            <button @click="$emit('update:novaAula', { ...novaAula, liberado: false })"
-              class="w-[44%] py-3 rounded-xl font-semibold transition-all relative -right-1"
-              :class="!novaAula.liberado ? 'bg-red-500 text-white' : 'bg-white/10 text-white/60'">Não</button>
-          </div>
-        </div>
-        <div>
-          <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Link do YouTube</label>
-          <input :value="novaAula.videoId" @input="$emit('update:novaAula', { ...novaAula, videoId: $event.target.value })"
-            type="text" class="w-[90%] relative left-3.5 bg-white/10 border border-white/15 rounded-xl p-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400"
-            placeholder="Cole o link do YouTube">
-        </div>
-        <div>
-          <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Descrição</label>
-          <textarea :value="novaAula.descricao" @input="$emit('update:novaAula', { ...novaAula, descricao: $event.target.value })"
-            class="w-[90%] relative left-3.5 bg-white/10 border border-white/15 rounded-xl p-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400 h-20 resize-none"
-            placeholder="O que você vai aprender nessa aula"></textarea>
-        </div>
-        <div>
-          <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Tópicos (separados por vírgula)</label>
-          <textarea :value="novaAula.topicosTexto" @input="$emit('update:novaAula', { ...novaAula, topicosTexto: $event.target.value })"
-            class="w-[90%] relative left-3.5 bg-white/10 border border-white/15 rounded-xl p-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400 h-20 resize-none"
-            placeholder="Tópico 1, Tópico 2, Tópico 3"></textarea>
-        </div>
+  <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Descrição</label>
+  <textarea :value="novaAula.descricao" @input="$emit('update:novaAula', { ...novaAula, descricao: $event.target.value })"
+    class="w-[90%] relative left-3.5 bg-white/10 border border-white/15 rounded-xl !pl-[9px] pr-3 pt-3 pb-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400 h-20 resize-none block"
+    placeholder="O que você vai aprender nessa aula"></textarea>
+</div>
+<div>
+  <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Tópicos (separados por vírgula)</label>
+  <textarea :value="novaAula.topicosTexto" @input="$emit('update:novaAula', { ...novaAula, topicosTexto: $event.target.value })"
+    class="w-[90%] relative left-3.5 bg-white/10 border border-white/15 rounded-xl !pl-[9px] pr-3 pt-3 pb-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400 h-20 resize-none block"
+    placeholder="Tópico 1, Tópico 2, Tópico 3"></textarea>
+</div>
         <div>
           <label class="text-white/80 text-sm font-semibold mb-2 block relative left-4">Material Complementar (PDFs — máx. 700KB cada)</label>
           <input type="file" accept=".pdf" multiple @change="$emit('handle-pdf', $event)"
@@ -130,7 +129,7 @@
     </div>
   </div>
 
-  <!-- Modal Editar Turma -->
+  <!-- Modal Editar Sala -->
   <div
     v-if="mostrarModalEditarTurma && turmaEditando"
     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[3000] p-4"
@@ -139,18 +138,18 @@
     <div class="bg-[#2a085c] border border-white/10 rounded-[28px] p-6 w-full max-w-80 shadow-2xl flex flex-col gap-4 max-h-[80vh] overflow-y-auto">
       <h3 class="font-bold text-xl text-white text-center relative top-1">Editar Turma</h3>
       <div class="flex flex-col gap-4">
+      <div>
+  <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Nome da Sala</label>
+  <input :value="turmaEditando.titulo" @input="$emit('update:turmaEditando', { ...turmaEditando, titulo: $event.target.value })"
+    type="text" class="w-[90%] relative left-3.5 bg-white/10 border border-white/15 rounded-xl !pl-[9px] pr-3 py-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400 block"
+    placeholder="Digite o nome da Sala">
+</div>
         <div>
-          <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Nome da Sala</label>
-          <input :value="turmaEditando.titulo" @input="$emit('update:turmaEditando', { ...turmaEditando, titulo: $event.target.value })"
-            type="text" class="w-[90%] relative left-3.5 bg-white/10 border border-white/15 rounded-xl p-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400"
-            placeholder="Digite o nome da Sala">
-        </div>
-        <div>
-          <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Código da Sala</label>
-          <input :value="turmaEditando.codigo" type="text" readonly
-            class="w-[90%] relative left-3.5 bg-white/5 border border-white/15 rounded-xl p-3 text-cyan-400 font-bold tracking-wider focus:outline-none"
-            placeholder="Código gerado automaticamente">
-        </div>
+  <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Código da Sala</label>
+  <input :value="turmaEditando.codigo" type="text" readonly
+    class="w-[90%] relative left-3.5 bg-white/5 border border-white/15 rounded-xl !pl-[9px] pr-3 py-3 text-cyan-400 font-bold tracking-wider focus:outline-none block"
+    placeholder="Código gerado automaticamente">
+</div>
         <div>
           <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Cor da Sala</label>
           <div class="flex gap-2 flex-wrap w-[90%] relative left-3.5">
@@ -172,10 +171,10 @@
             </button>
           </div>
         </div>
-        <div class="relative bottom-2.5">
+  <div class="relative bottom-2.5">
           <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Nível</label>
           <select :value="turmaEditando.nivel" @change="$emit('update:turmaEditando', { ...turmaEditando, nivel: $event.target.value })"
-            class="w-[90%] relative left-3.5 bg-[#420583] border border-cyan-400 rounded-xl p-3 text-white focus:outline-none focus:border-cyan-400">
+            class="w-[90%] relative left-3.5 bg-[#420583] border border-cyan-400 rounded-xl !pl-[9px] pr-3 py-3 text-white focus:outline-none focus:border-cyan-400 block appearance-none">
             <option value="Iniciante">Iniciante</option>
             <option value="Intermediário">Intermediário</option>
             <option value="Avançado">Avançado</option>
@@ -185,17 +184,17 @@
           </select>
         </div>
         <div>
-          <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6">Descrição</label>
+          <label class="text-white/80 text-sm font-semibold mb-2 block relative left-6 bottom-4.5">Descrição</label>
           <textarea :value="turmaEditando.descricao" @input="$emit('update:turmaEditando', { ...turmaEditando, descricao: $event.target.value })"
-            class="w-[90%] relative left-3.5 bg-white/10 border border-white/15 rounded-xl p-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400 h-20 resize-none"
+            class="w-[90%] relative left-3.5 bottom-4.5 bg-white/10 border border-white/15 rounded-xl !pl-[9px] pr-3 pt-3 pb-3 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400 h-20 resize-none block"
             placeholder="Descrição da turma"></textarea>
         </div>
       </div>
       <div class="flex gap-3 mt-4">
         <button @click="$emit('update:mostrarModalEditarTurma', false); $emit('update:turmaEditando', null)"
-          class="w-[40%] py-3 bg-white/10 border border-white/15 rounded-xl font-semibold text-white hover:bg-white/20 transition-all relative left-5.5 bottom-4">Cancelar</button>
+          class="w-[40%] py-3 bg-white/10 border border-white/15 rounded-xl font-semibold text-white hover:bg-white/20 transition-all relative left-6.5 bottom-4">Cancelar</button>
         <button @click="$emit('salvar-edicao')"
-          class="w-[40%] py-3 bg-cyan-400 rounded-xl font-bold text-[#420583] hover:bg-cyan-300 transition-all relative left-4.5 bottom-4">Salvar</button>
+          class="w-[40%] py-3 bg-cyan-400 rounded-xl font-bold text-[#420583] hover:bg-cyan-300 transition-all relative left-5.5 bottom-4">Salvar</button>
       </div>
     </div>
   </div>

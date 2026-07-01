@@ -1,15 +1,30 @@
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 
-export function useFavoritos({ carregarAoMontar = true } = {}) {
-  const favoritos = ref([])
+const favoritos = ref([])
+let initialized = false
 
-  function carregarFavoritos() {
+function carregarFavoritos() {
+  try {
     const favs = localStorage.getItem('favoritos')
     favoritos.value = favs ? JSON.parse(favs) : []
+  } catch (e) {
+    console.error('Erro ao carregar favoritos:', e)
+    favoritos.value = []
+  }
+}
+
+export function useFavoritos() {
+  if (!initialized) {
+    carregarFavoritos()
+    initialized = true
   }
 
   function salvarFavoritos() {
-    localStorage.setItem('favoritos', JSON.stringify(favoritos.value))
+    try {
+      localStorage.setItem('favoritos', JSON.stringify(favoritos.value))
+    } catch (e) {
+      console.error('Erro ao salvar favoritos:', e)
+    }
   }
 
   function removerFavorito(id) {
@@ -18,10 +33,6 @@ export function useFavoritos({ carregarAoMontar = true } = {}) {
       favoritos.value.splice(index, 1)
       salvarFavoritos()
     }
-  }
-
-  if (carregarAoMontar) {
-    onMounted(carregarFavoritos)
   }
 
   return { favoritos, carregarFavoritos, salvarFavoritos, removerFavorito }

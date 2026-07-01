@@ -10,12 +10,12 @@ import { api } from '../services/api'
 export const useAuthStore = defineStore('auth', () => {
 
   // ─── Estado ────────────────────────────────────────────────────────────────
-  // Tenta ler do localStorage ao inicializar (sessão persistida) 
-  const token = ref(localStorage.getItem('iara_token') || null)
+  // Tenta ler do sessionStorage ao inicializar (sessão persistida) 
+  const token = ref(sessionStorage.getItem('iara_token') || null)
 
   const usuario = ref(null)
   try {
-    const usuarioStorage = localStorage.getItem('iara_usuario')
+    const usuarioStorage = sessionStorage.getItem('iara_usuario')
     usuario.value = usuarioStorage ? JSON.parse(usuarioStorage) : null
   } catch (error) {
     usuario.value = null
@@ -75,8 +75,8 @@ export const useAuthStore = defineStore('auth', () => {
       }
     }
 
-    localStorage.setItem('iara_token', data.token)
-    localStorage.setItem('iara_usuario', JSON.stringify(usuario.value || null))
+    sessionStorage.setItem('iara_token', data.token)
+    sessionStorage.setItem('iara_usuario', JSON.stringify(usuario.value || null))
 
     return data
   }
@@ -96,8 +96,8 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = null
     usuario.value = null
 
-    localStorage.removeItem('iara_token')
-    localStorage.removeItem('iara_usuario')
+    sessionStorage.removeItem('iara_token')
+    sessionStorage.removeItem('iara_usuario')
 
     window.location.href = '/login?sessao=expirada'
   }

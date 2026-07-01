@@ -1,9 +1,22 @@
 <template>
   <nav class="fixed bottom-0 h-[10%] left-0 right-0 bg-[#420583]/90 backdrop-blur-md border-t border-white/10 px-8 py-3 flex justify-between items-center z-[2000]">
+    <!-- Logout Button -->
+    <div
+      class="flex flex-col items-center gap-1 cursor-pointer group relative left-[5%]"
+      @click="$emit('abrirModalLogout')"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-white opacity-40 transition-opacity group-hover:opacity-80 group-hover:text-red-400">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+        <polyline points="16 17 21 12 16 7"/>
+        <line x1="21" y1="12" x2="9" y2="12"/>
+      </svg>
+      <span class="text-[10px] font-semibold text-white opacity-40 tracking-wide group-hover:opacity-80 group-hover:text-red-400 transition-opacity relative bottom-[5px]">Sair</span>
+    </div>
+
     <div
       class="flex flex-col items-center gap-1 cursor-pointer group relative left-[3%]"
       :class="{ 'pointer-events-none': abaAtiva === 'sala' }"
-      @click="abaAtiva !== 'sala' && router.push('/sala-de-aula')"
+      @click="abaAtiva !== 'sala' && router.push('/menu')"
     >
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-white opacity-40 transition-opacity group-hover:opacity-80">
         <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>

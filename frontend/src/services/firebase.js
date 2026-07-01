@@ -1,7 +1,7 @@
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
 function getToken() {
-  return localStorage.getItem('iara_token')
+  return sessionStorage.getItem('iara_token')
 }
 
 function headers() {
@@ -55,7 +55,7 @@ export async function buscarTurmaPorCodigo(codigo) {
 
 
 export async function buscarTurmaPorId(id) {
-  const usuarioStr = localStorage.getItem('iara_usuario')
+  const usuarioStr = sessionStorage.getItem('iara_usuario')
   const usuario = usuarioStr ? JSON.parse(usuarioStr) : null
   const role = usuario?.role || 'aluno'
   
@@ -68,7 +68,7 @@ export async function buscarTurmaPorId(id) {
 }
 
 export async function buscarTodasTurmas() {
-  const usuarioStr = localStorage.getItem('iara_usuario')
+  const usuarioStr = sessionStorage.getItem('iara_usuario')
   const usuario = usuarioStr ? JSON.parse(usuarioStr) : null
   const role = usuario?.role || 'aluno'
   // Alunos veem todas as turmas do banco de dados (incluindo as criadas por professores)
@@ -269,7 +269,7 @@ export async function buscarTurmasPorTitulo(titulo) {
 // ─── PROGRESSO DE AULAS ─────────────────────────────────────────────────────
 
 export async function salvarProgressoAula(turmaId, conteudoId, progressoData) {
-  const usuarioStr = localStorage.getItem('iara_usuario')
+  const usuarioStr = sessionStorage.getItem('iara_usuario')
   const usuario = usuarioStr ? JSON.parse(usuarioStr) : null
   if (!usuario) throw new Error('Usuário não autenticado')
 
@@ -287,18 +287,44 @@ export async function salvarProgressoAula(turmaId, conteudoId, progressoData) {
 }
 
 export async function buscarProgressoAula(turmaId, conteudoId) {
-  const usuarioStr = localStorage.getItem('iara_usuario')
+  const usuarioStr = sessionStorage.getItem('iara_usuario')
   const usuario = usuarioStr ? JSON.parse(usuarioStr) : null
-  if (!usuario) return { videoAssistido: false, pdfVisualizado: false, pdfBaixado: false, progresso: 0 }
+  if (!usuario) return progressoPadrao()
 
   try {
     const res = await fetch(`${BASE_URL}/iara/progresso/${turmaId}/${conteudoId}/${usuario.id}`, {
       headers: headers()
     })
+    if (!res.ok) return progressoPadrao()
     return handleResponse(res)
-  } catch (error) {
-    // Se o endpoint não existir, retorna progresso padrão
-    return { videoAssistido: false, pdfVisualizado: false, pdfBaixado: false, progresso: 0 }
+  } catch {
+    return progressoPadrao()
+  }
+}
+
+export async function buscarProgressoTurma(turmaId) {
+  const usuarioStr = sessionStorage.getItem('iara_usuario')
+  const usuario = usuarioStr ? JSON.parse(usuarioStr) : null
+  if (!usuario) return { progressoPorAula: {}, progressoPct: 0 }
+
+  try {
+    const res = await fetch(`${BASE_URL}/iara/progresso/turma/${turmaId}/${usuario.id}`, {
+      headers: headers()
+    })
+    if (!res.ok) return { progressoPorAula: {}, progressoPct: 0 }
+    return handleResponse(res)
+  } catch {
+    return { progressoPorAula: {}, progressoPct: 0 }
+  }
+}
+
+function progressoPadrao() {
+  return {
+    videoAssistido: false,
+    pdfVisualizado: false,
+    pdfBaixado: false,
+    concluidoManual: false,
+    progresso: 0,
   }
 }
 
